@@ -17,11 +17,5 @@
     ],
     "data_type_map": {
         "date": "timestamp"
-    },
-    "readStreamOptions": {},
-    "writeStreamOptions": {
-        "mergeSchema": "false",
-        "checkpointLocation": "/Volumes/edsm/silver/utility/powerPlay/_checkpoints/",
-        "delta.columnMapping.mode": "name"
     }
 }
