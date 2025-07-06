@@ -43,7 +43,7 @@ def _get_session(dbutils=None, spark=None) -> boto3.session.Session:
             _session = boto3.Session(
                 aws_access_key_id=access_key,
                 aws_secret_access_key=secret_key,
-                region_name="us-east-1",
+                region_name="us-west-2",
             )
         else:
             _session = boto3.Session()
