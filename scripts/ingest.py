@@ -891,7 +891,7 @@ def main():
     prefix = os.environ.get("SETTINGS_S3_PREFIX", "s3://edsm/settings")
     settings_uri = f"{prefix}/{color}/{table}.json"
 
-    raw = read_text(settings_uri)
+    raw = read_text(settings_uri, dbutils)
     settings = json.loads(raw)
     settings = apply_job_type(settings)
     dst_table_name = settings["dst_table_name"]
