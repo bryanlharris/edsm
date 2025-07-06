@@ -17,6 +17,7 @@ from . import (
     sanity,
     job,
     project_root,
+    s3_utils,
 )
 
 __all__ = [
@@ -29,4 +30,5 @@ __all__ = [
     "sanity",
     "job",
     "project_root",
+    "s3_utils",
 ]
