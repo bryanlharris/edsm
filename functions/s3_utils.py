@@ -1,6 +1,7 @@
 from urllib.parse import urlparse
 from typing import Optional
 import boto3
+import os
 
 _session: Optional[boto3.session.Session] = None
 
@@ -15,13 +16,33 @@ def _parse_s3_uri(uri: str):
     return bucket, key
 
 
-def _get_session(dbutils=None) -> boto3.session.Session:
-    """Return a boto3 session, optionally using credentials from ``dbutils``."""
+def _get_session(dbutils=None, spark=None) -> boto3.session.Session:
+    """Return a boto3 session using available credentials.
+
+    If ``dbutils`` is provided, AWS keys are fetched from Databricks secrets and
+    also stored in ``spark.conf`` when ``spark`` is given.  Workers can then read
+    these keys from ``spark.conf`` to authenticate without an IAM role.
+    """
+
     global _session
     if _session is None:
+        access_key = None
+        secret_key = None
+
         if dbutils is not None:
             access_key = dbutils.secrets.get(scope="myscope", key="aws_access_key_id")
             secret_key = dbutils.secrets.get(scope="myscope", key="aws_secret_access_key")
+            if spark is not None:
+                spark.conf.set("aws_access_key_id", access_key)
+                spark.conf.set("aws_secret_access_key", secret_key)
+        elif spark is not None:
+            access_key = spark.conf.get("aws_access_key_id", None)
+            secret_key = spark.conf.get("aws_secret_access_key", None)
+        else:
+            access_key = os.environ.get("AWS_ACCESS_KEY_ID")
+            secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
+
+        if access_key and secret_key:
             _session = boto3.Session(
                 aws_access_key_id=access_key,
                 aws_secret_access_key=secret_key,
@@ -29,6 +50,7 @@ def _get_session(dbutils=None) -> boto3.session.Session:
             )
         else:
             _session = boto3.Session()
+
     return _session
 
 
