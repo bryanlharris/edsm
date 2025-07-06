@@ -19,13 +19,12 @@ def _parse_s3_uri(uri: str):
     return bucket, key
 
 
-def _get_session(dbutils=None, spark=None) -> boto3.session.Session:
+def _get_session(dbutils=None) -> boto3.session.Session:
     """Return a boto3 session using available credentials.
 
     When ``dbutils`` is provided, AWS keys are fetched from Databricks secrets
     and stored in ``os.environ`` so that executors launched via ``addPyFile`` can
-    authenticate.  ``spark`` is also consulted for credentials in case workers
-    propagate them via ``spark.conf.set``.
+    authenticate.
     """
 
     global _session
@@ -38,19 +37,9 @@ def _get_session(dbutils=None, spark=None) -> boto3.session.Session:
             secret_key = dbutils.secrets.get(scope="edsm", key="aws_secret_access_key")
             os.environ["AWS_ACCESS_KEY_ID"] = access_key
             os.environ["AWS_SECRET_ACCESS_KEY"] = secret_key
-            if spark is not None:
-                spark.conf.set("fs.s3a.access.key", access_key)
-                spark.conf.set("fs.s3a.secret.key", secret_key)
-                spark.conf.set(
-                    "fs.s3a.aws.credentials.provider",
-                    "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider",
-                )
         else:
             access_key = os.environ.get("AWS_ACCESS_KEY_ID")
             secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
-            if (not access_key or not secret_key) and spark is not None:
-                access_key = spark.conf.get("fs.s3a.access.key", None)
-                secret_key = spark.conf.get("fs.s3a.secret.key", None)
 
         if access_key and secret_key:
             _session = boto3.Session(
@@ -76,6 +65,15 @@ def download_file(s3_uri: str, local_path: str, dbutils=None):
     bucket, key = _parse_s3_uri(s3_uri)
     client = _get_session(dbutils).client("s3")
     client.download_file(bucket, key, local_path)
+
+
+def read_text(s3_uri: str, dbutils=None) -> str:
+    """Return the contents of ``s3_uri`` as text."""
+
+    bucket, key = _parse_s3_uri(s3_uri)
+    client = _get_session(dbutils).client("s3")
+    obj = client.get_object(Bucket=bucket, Key=key)
+    return obj["Body"].read().decode("utf-8")
 
 
 def upload_directory_as_zip(directory: str | Path, s3_uri: str, dbutils=None):
