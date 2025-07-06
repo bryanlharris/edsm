@@ -24,7 +24,6 @@ from typing import Optional
 
 import boto3
 import requests
-from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
     array,
     col,
@@ -876,108 +875,6 @@ def save_job_configuration(dbutils, path=None):
 #  END of job helper
 # ---------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
-#  BEGIN copied functions from functions/sanity.py
-# ---------------------------------------------------------------------------
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-
-
-def _discover_settings_files():
-    project_root = PROJECT_ROOT
-    bronze_files = {f.stem: str(f) for f in project_root.glob("layer_*_bronze/*.json")}
-    silver_files = {f.stem: str(f) for f in project_root.glob("layer_*_silver/*.json")}
-    gold_files = {f.stem: str(f) for f in project_root.glob("layer_*_gold/*.json")}
-    return bronze_files, silver_files, gold_files
-
-
-def validate_settings(dbutils):
-    bronze_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="bronze")
-    silver_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="silver")
-    gold_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="gold")
-    bronze_files, silver_files, gold_files = _discover_settings_files()
-    all_tables = set(list(bronze_files.keys()) + list(silver_files.keys()) + list(gold_files.keys()))
-    layers = ["bronze", "silver", "gold"]
-    required_keys = {
-        "bronze": ["read_function", "transform_function", "write_function", "dst_table_name", "file_schema"],
-        "silver": ["read_function", "transform_function", "write_function", "src_table_name", "dst_table_name"],
-        "gold": ["read_function", "transform_function", "write_function", "src_table_name", "dst_table_name"],
-    }
-    write_key_requirements = {
-        "stream_upsert_table": ["business_key", "surrogate_key", "upsert_function"],
-        "batch_upsert_scd2": ["business_key", "surrogate_key", "upsert_function"],
-        "write_upsert_snapshot": ["business_key"],
-    }
-    errs = []
-    for layer, files in [("bronze", bronze_files), ("silver", silver_files), ("gold", gold_files)]:
-        for tbl, path in files.items():
-            settings = json.loads(open(path).read())
-            settings = apply_job_type(settings)
-            for k in required_keys[layer]:
-                if k not in settings:
-                    errs.append(f"{path} missing {k}")
-            write_fn = settings.get("write_function")
-            if write_fn in write_key_requirements:
-                for req_key in write_key_requirements[write_fn]:
-                    if req_key not in settings:
-                        errs.append(f"{path} missing {req_key} for write_function {write_fn}")
-    if errs:
-        raise RuntimeError("Sanity check failed: " + ", ".join(errs))
-    else:
-        print("Sanity check: Validate settings check passed.")
-
-
-def initialize_empty_tables(spark):
-    errs = []
-    bronze_files, silver_files, gold_files = _discover_settings_files()
-    all_tables = set(list(bronze_files.keys()) + list(silver_files.keys()) + list(gold_files.keys()))
-    layers = ["bronze", "silver", "gold"]
-    for tbl in sorted(all_tables):
-        df = None
-        skip_table = False
-        for layer in layers:
-            if layer == "bronze" and tbl not in bronze_files:
-                break
-            if layer == "silver" and tbl not in silver_files:
-                break
-            if layer == "gold" and tbl not in gold_files:
-                break
-            if layer == "bronze":
-                path = bronze_files[tbl]
-            elif layer == "silver":
-                path = silver_files[tbl]
-            elif layer == "gold":
-                path = gold_files[tbl]
-            settings = json.loads(open(path).read())
-            settings = apply_job_type(settings)
-            if layer == "bronze":
-                settings["use_metadata"] = "false"
-                if "file_schema" not in settings:
-                    errs.append(f"{path} missing file_schema, cannot create table")
-                    skip_table = True
-                    break
-                schema = StructType.fromJson(settings["file_schema"])
-                df = spark.createDataFrame([], schema)
-            try:
-                transform_function = globals()[settings["transform_function"]]
-            except Exception:
-                errs.append(f"{path} missing transform_function for {tbl}, cannot create table")
-                skip_table = True
-                break
-            df = transform_function(df, settings, spark)
-            dst = settings["dst_table_name"]
-            if create_table_if_not_exists(df, dst, spark):
-                print(f"\tINFO: Table did not exist and was created: {dst}.")
-        if skip_table:
-            continue
-    if errs:
-        raise RuntimeError("Sanity check failed: " + ", ".join(errs))
-    else:
-        print("Sanity check: Initialize empty tables check passed.")
-
-# ---------------------------------------------------------------------------
-#  END of sanity functions
-# ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 #  Ingest main logic from notebook
@@ -1002,8 +899,6 @@ def main():
     settings_message = f"\n\nSettings URI: {settings_uri}\n\n"
     settings_message += json.dumps(settings, indent=4)
     print(settings_message)
-
-    spark = SparkSession.builder.getOrCreate()
 
     if "pipeline_function" in settings:
         pipeline_function = globals()[settings["pipeline_function"].split(".")[-1]]
