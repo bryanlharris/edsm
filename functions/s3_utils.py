@@ -31,8 +31,8 @@ def _get_session(dbutils=None, spark=None) -> boto3.session.Session:
         secret_key = None
 
         if dbutils is not None:
-            access_key = dbutils.secrets.get(scope="myscope", key="aws_access_key_id")
-            secret_key = dbutils.secrets.get(scope="myscope", key="aws_secret_access_key")
+            access_key = dbutils.secrets.get(scope="edsm", key="aws_access_key_id")
+            secret_key = dbutils.secrets.get(scope="edsm", key="aws_secret_access_key")
             os.environ["AWS_ACCESS_KEY_ID"] = access_key
             os.environ["AWS_SECRET_ACCESS_KEY"] = secret_key
         else:
