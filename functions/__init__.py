@@ -16,7 +16,8 @@ from . import (
     rescue,
     sanity,
     job,
-    project_root,
+    config,
+    s3_utils,
 )
 
 __all__ = [
@@ -28,5 +29,6 @@ __all__ = [
     "rescue",
     "sanity",
     "job",
-    "project_root",
+    "config",
+    "s3_utils",
 ]
