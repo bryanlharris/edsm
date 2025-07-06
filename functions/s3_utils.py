@@ -19,9 +19,10 @@ def _parse_s3_uri(uri: str):
 def _get_session(dbutils=None, spark=None) -> boto3.session.Session:
     """Return a boto3 session using available credentials.
 
-    If ``dbutils`` is provided, AWS keys are fetched from Databricks secrets and
-    also stored in ``spark.conf`` when ``spark`` is given.  Workers can then read
-    these keys from ``spark.conf`` to authenticate without an IAM role.
+    When ``dbutils`` is provided, AWS keys are fetched from Databricks secrets
+    and stored in ``os.environ`` so that executors launched via ``addPyFile`` can
+    authenticate.  ``spark`` is accepted for backward compatibility but is not
+    used.
     """
 
     global _session
@@ -32,12 +33,8 @@ def _get_session(dbutils=None, spark=None) -> boto3.session.Session:
         if dbutils is not None:
             access_key = dbutils.secrets.get(scope="myscope", key="aws_access_key_id")
             secret_key = dbutils.secrets.get(scope="myscope", key="aws_secret_access_key")
-            if spark is not None:
-                spark.conf.set("aws_access_key_id", access_key)
-                spark.conf.set("aws_secret_access_key", secret_key)
-        elif spark is not None:
-            access_key = spark.conf.get("aws_access_key_id", None)
-            secret_key = spark.conf.get("aws_secret_access_key", None)
+            os.environ["AWS_ACCESS_KEY_ID"] = access_key
+            os.environ["AWS_SECRET_ACCESS_KEY"] = secret_key
         else:
             access_key = os.environ.get("AWS_ACCESS_KEY_ID")
             secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
