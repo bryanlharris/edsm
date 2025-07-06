@@ -2,9 +2,6 @@ from urllib.parse import urlparse
 from typing import Optional
 import boto3
 import os
-import io
-import zipfile
-from pathlib import Path
 
 _session: Optional[boto3.session.Session] = None
 
@@ -23,8 +20,7 @@ def _get_session(dbutils=None) -> boto3.session.Session:
     """Return a boto3 session using available credentials.
 
     When ``dbutils`` is provided, AWS keys are fetched from Databricks secrets
-    and stored in ``os.environ`` so that executors launched via ``addPyFile`` can
-    authenticate.
+    and stored in ``os.environ`` so that executors can authenticate.
     """
 
     global _session
@@ -76,19 +72,3 @@ def read_text(s3_uri: str, dbutils=None) -> str:
     return obj["Body"].read().decode("utf-8")
 
 
-def upload_directory_as_zip(directory: str | Path, s3_uri: str, dbutils=None):
-    """Zip ``directory`` in-memory and upload the archive to ``s3_uri``."""
-
-    directory = Path(directory)
-    bucket, key = _parse_s3_uri(s3_uri)
-    client = _get_session(dbutils).client("s3")
-
-    buffer = io.BytesIO()
-    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
-        for root, _, files in os.walk(directory):
-            for name in files:
-                path = Path(root) / name
-                arcname = str(path.relative_to(directory))
-                zf.write(path, arcname)
-    buffer.seek(0)
-    client.upload_fileobj(buffer, bucket, key)
