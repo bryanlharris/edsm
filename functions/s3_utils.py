@@ -2,6 +2,9 @@ from urllib.parse import urlparse
 from typing import Optional
 import boto3
 import os
+import io
+import zipfile
+from pathlib import Path
 
 _session: Optional[boto3.session.Session] = None
 
@@ -73,3 +76,21 @@ def download_file(s3_uri: str, local_path: str, dbutils=None):
     bucket, key = _parse_s3_uri(s3_uri)
     client = _get_session(dbutils).client("s3")
     client.download_file(bucket, key, local_path)
+
+
+def upload_directory_as_zip(directory: str | Path, s3_uri: str, dbutils=None):
+    """Zip ``directory`` in-memory and upload the archive to ``s3_uri``."""
+
+    directory = Path(directory)
+    bucket, key = _parse_s3_uri(s3_uri)
+    client = _get_session(dbutils).client("s3")
+
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for root, _, files in os.walk(directory):
+            for name in files:
+                path = Path(root) / name
+                arcname = str(path.relative_to(directory))
+                zf.write(path, arcname)
+    buffer.seek(0)
+    client.upload_fileobj(buffer, bucket, key)
