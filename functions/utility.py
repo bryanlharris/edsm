@@ -4,6 +4,14 @@ import importlib
 import subprocess
 from glob import glob
 from pathlib import Path
+
+
+def safe_get_widget(dbutils, name, default=None):
+    """Return a widget value or a default when the widget is missing."""
+    try:
+        return dbutils.widgets.get(name)
+    except Exception:
+        return default
 from pyspark.sql.types import StructType
 
 # Map short ``job_type`` names to ingest function combinations. These names are
