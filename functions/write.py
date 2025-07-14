@@ -51,12 +51,23 @@ def _simple_merge(df, settings, spark):
 
     use_row_hash = str(settings.get("use_row_hash", "false")).lower() == "true"
     row_hash_col = settings.get("row_hash_col", "row_hash")
+    ingest_time_column = settings.get("ingest_time_column")
 
     merge_condition = " and ".join([f"t.{k} = s.{k}" for k in business_key])
     if use_row_hash:
         change_condition = f"t.{row_hash_col} <> s.{row_hash_col}"
     else:
         change_condition = " or ".join([f"t.{k} <> s.{k}" for k in surrogate_key])
+
+    if ingest_time_column:
+        window = Window.partitionBy(*business_key).orderBy(col(ingest_time_column).desc())
+        df = (
+            df.withColumn("rn", row_number().over(window))
+              .filter("rn = 1")
+              .drop("rn")
+        )
+    else:
+        df = df.dropDuplicates(business_key)
 
     df.createOrReplaceTempView("updates")
     spark.sql(
