@@ -37,6 +37,11 @@ JOB_TYPE_MAP = {
         "transform_function": "functions.transform.silver_standard_transform",
         "write_function": "functions.write.write_upsert_snapshot",
     },
+    "gold_standard_batch": {
+        "read_function": "functions.read.read_table",
+        "transform_function": "functions.transform.silver_standard_transform",
+        "write_function": "functions.write.write_upsert_snapshot",
+    },
 }
 
 # Base S3 paths for external volumes
