@@ -1,6 +1,6 @@
 {
     "simple_settings": "true",
-    "job_type": "silver_standard_batch",
+    "job_type": "gold_standard_batch",
     "src_table_name": "edsm.silver.systemsWithCoordinates",
     "dst_table_name": "edsm.gold.systemsWithCoordinates",
     "business_key": [
