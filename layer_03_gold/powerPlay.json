@@ -1,0 +1,13 @@
+{
+    "simple_settings": "true",
+    "job_type": "silver_standard_batch",
+    "src_table_name": "edsm.silver.powerPlay",
+    "dst_table_name": "edsm.gold.powerPlay",
+    "business_key": [
+        "id",
+        "power"
+    ],
+    "ingest_time_column": "derived_ingest_time",
+    "transform_function": "functions.transform.gold_sample_transform",
+    "sample_fraction": 0.01
+}

@@ -26,6 +26,7 @@ from pyspark.sql.functions import (
     expr,
     transform,
     array,
+    rand,
 )
 import re
 
@@ -263,6 +264,23 @@ def cast_data_types(df, data_type_map=None):
             selected_columns.append(col(column_name))
 
     return df.select(selected_columns)
+
+
+def gold_sample_transform(df, settings, spark):
+    """Return a random sample of ``df`` based on ``sample_fraction``.
+
+    Parameters
+    ----------
+    df : DataFrame
+        Input DataFrame.
+    settings : dict
+        Configuration dictionary that may include ``sample_fraction``.
+    spark : SparkSession
+        Unused but included for API consistency.
+    """
+
+    fraction = float(settings.get("sample_fraction", 0.01))
+    return df.where(rand() < fraction)
 
 
 
