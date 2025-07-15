@@ -27,6 +27,8 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
             .agg({"version": "max"})
             .collect()[0][0]
         )
+        if last_version is None:
+            last_version = -1
     else:
         last_version = -1
 
@@ -35,6 +37,8 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
         .agg({"version": "max"})
         .collect()[0][0]
     )
+    if current_max_version is None:
+        current_max_version = -1
 
     if last_version > current_max_version:
         truncate_table_if_exists(file_version_table_name, spark)
