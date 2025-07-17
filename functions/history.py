@@ -2,34 +2,6 @@ import json
 from .utility import create_table_if_not_exists, truncate_table_if_exists
 from pyspark.sql.functions import col, lit, expr
 
-
-def _safe_file_paths(full_table_name, version, spark):
-    """Return file paths for a table version or ``None`` if files are missing."""
-
-    try:
-        df = (
-            spark.read
-            .format("delta")
-            .option("versionAsOf", version)
-            .table(full_table_name)
-            .select(col("source_metadata.file_path").alias("file_path"))
-            .dropDuplicates()
-        )
-        return [row.file_path for row in df.collect()]
-    except FileNotFoundError:
-        print(
-            f"\tWARN: Missing files for {full_table_name} version {version}; skipping."
-        )
-        return None
-    except Exception as exc:  # pragma: no cover - defensive against pyspark errors
-        msg = str(exc).lower()
-        if "not found" in msg or "no such" in msg or "does not exist" in msg:
-            print(
-                f"\tWARN: Missing files for {full_table_name} version {version}; skipping."
-            )
-            return None
-        raise
-
 def describe_and_filter_history(full_table_name, spark):
     """Return ordered versions that correspond to streaming updates or merges."""
 
@@ -77,20 +49,37 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
     ]
 
     if last_version >= 0:
-        paths = _safe_file_paths(full_table_name, last_version, spark)
-        prev_files = set(paths or [])
+        prev_files = {
+            row.file_path
+            for row in (
+                spark.read
+                .format("delta")
+                .option("versionAsOf", last_version)
+                .table(full_table_name)
+                .select(col("source_metadata.file_path").alias("file_path"))
+                .dropDuplicates()
+                .collect()
+            )
+        }
     else:
         prev_files = set()
 
     file_version_history_records = []
 
     for version in version_list:
-        file_path_list = _safe_file_paths(full_table_name, version, spark)
-        if file_path_list is None:
-            continue
+        this_version_df = (
+            spark.read
+            .format("delta")
+            .option("versionAsOf", version)
+            .table(full_table_name)
+            .select(col("source_metadata.file_path").alias("file_path"))
+            .dropDuplicates()
+        )
+        file_path_list = this_version_df.collect()
+        file_path_list = [row.file_path for row in file_path_list]
         new_files = set(file_path_list) - prev_files
         prev_files.update(new_files)
-        if new_files:
+        if len(new_files) > 0:
             file_version_history_records.append((version, list(new_files)))
 
     if len(file_version_history_records) > 0:
@@ -110,18 +99,11 @@ def transaction_history(full_table_name, history_schema, spark):
 
     catalog, schema, table = full_table_name.split(".")
     transaction_table_name = f"{catalog}.{history_schema}.{table}_transaction_history"
-    try:
-        df = (
-            spark.sql(f"describe history {full_table_name}")
-            .withColumn("table_name", lit(full_table_name))
-            .selectExpr("table_name", "* except (table_name)")
-        )
-    except Exception as exc:  # pragma: no cover - defensive against pyspark errors
-        msg = str(exc).lower()
-        if "not found" in msg or "no such" in msg or "does not exist" in msg:
-            print(f"\tWARN: Unable to read history for {full_table_name}: {exc}")
-            return
-        raise
+    df = (
+        spark.sql(f"describe history {full_table_name}")
+        .withColumn("table_name", lit(full_table_name))
+        .selectExpr("table_name", "* except (table_name)")
+    )
     create_table_if_not_exists(df, transaction_table_name, spark)
     df.createOrReplaceTempView("df")
     spark.sql(f"""
