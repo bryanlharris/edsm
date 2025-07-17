@@ -59,10 +59,28 @@ class DummySpark:
     def sql(self, query):
         return DummyAgg(self.current_value)
 
+class DummyRead:
+    def format(self, *a, **k):
+        return self
+    def option(self, *a, **k):
+        return self
+    def table(self, *a, **k):
+        raise FileNotFoundError('missing')
+
+class DummySparkMissing(DummySpark):
+    def __init__(self, *a, **k):
+        super().__init__(*a, **k)
+        self.read = DummyRead()
+
 class HistoryTests(unittest.TestCase):
     def test_handles_empty_file_version_table(self):
         spark = DummySpark(exists=True, last_value=None, current_value=0)
         history.describe_and_filter_history = lambda *a, **k: []
+        history.build_and_merge_file_history('cat.sch.tbl', 'hist', spark)
+
+    def test_skips_missing_versions(self):
+        spark = DummySparkMissing(exists=False, last_value=None, current_value=0)
+        history.describe_and_filter_history = lambda *a, **k: [1]
         history.build_and_merge_file_history('cat.sch.tbl', 'hist', spark)
 
 if __name__ == '__main__':
