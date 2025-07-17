@@ -6,6 +6,7 @@ import html
 from glob import glob
 from pathlib import Path
 from pyspark.sql.types import StructType
+from collections import defaultdict, deque
 
 from .config import JOB_TYPE_MAP, S3_ROOT_LANDING, S3_ROOT_UTILITY
 
@@ -139,6 +140,51 @@ def apply_job_type(settings):
         settings = _merge_dicts(defaults, settings)
 
     return settings
+
+
+def sort_by_dependency(dependencies):
+    """Return a topologically sorted list from a dependency map.
+
+    Parameters
+    ----------
+    dependencies : dict[str, list[str]]
+        Mapping of table name to list of tables it depends on.
+
+    Returns
+    -------
+    list[str]
+        Tables ordered so that all dependencies appear before a table.
+
+    Raises
+    ------
+    Exception
+        If a dependency cycle is detected.
+    """
+
+    graph = defaultdict(list)
+    in_degree = {t: 0 for t in dependencies}
+
+    for table, deps in dependencies.items():
+        for dep in deps:
+            if dep in dependencies:
+                graph[dep].append(table)
+                in_degree[table] += 1
+
+    queue = deque([t for t, d in in_degree.items() if d == 0])
+    ordered = []
+
+    while queue:
+        node = queue.popleft()
+        ordered.append(node)
+        for neighbor in graph[node]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+
+    if len(ordered) != len(dependencies):
+        raise Exception("Dependency cycle detected")
+
+    return ordered
 
 
 def get_function(path):
