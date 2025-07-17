@@ -27,6 +27,8 @@ from pyspark.sql.functions import (
     transform,
     array,
     rand,
+    conv,
+    substring,
 )
 import re
 
@@ -175,6 +177,24 @@ def add_row_hash(df, fields_to_hash, name="row_hash", use_row_hash=False):
     return df.withColumn(name, sha2(to_json(col("__normalized_struct__")), 256)).drop("__normalized_struct__")
 
 
+def add_row_hash_mod(df, column_name, modulus):
+    """Add a column with ``column_name`` converted from hex to int and modded.
+
+    Parameters
+    ----------
+    df : DataFrame
+        Input DataFrame containing ``column_name``.
+    column_name : str
+        Name of the column containing a hexadecimal hash value.
+    modulus : int
+        Value to mod the integer representation by.
+    """
+    return df.withColumn(
+        "row_hash_mod",
+        (conv(substring(col(column_name), 1, 16), 16, 10).cast("long") % modulus)
+    )
+
+
 def clean_column_names(df):
     """Normalize column names by removing spaces and invalid characters."""
     def clean(name):
@@ -266,20 +286,35 @@ def cast_data_types(df, data_type_map=None):
     return df.select(selected_columns)
 
 
-def gold_sample_transform(df, settings, spark):
-    """Return a random sample of ``df`` based on ``sample_fraction``.
+def sample_table(df, settings, spark):
+    """Return a sample of ``df`` based on ``sample_type`` and ``sample_fraction``.
 
     Parameters
     ----------
     df : DataFrame
         Input DataFrame.
     settings : dict
-        Configuration dictionary that may include ``sample_fraction``.
+        Configuration dictionary that may include ``sample_type`` (``random`` or
+        ``deterministic``), ``sample_fraction``, and ``hash_modulus`` when using
+        deterministic sampling.
     spark : SparkSession
         Unused but included for API consistency.
     """
 
+    sample_type = str(settings.get("sample_type", "random")).lower()
     fraction = float(settings.get("sample_fraction", 0.01))
+
+    if sample_type == "deterministic":
+        modulus = int(settings.get("hash_modulus", 1000000))
+        threshold = int(fraction * modulus)
+        row_hash_col = settings.get("row_hash_col", "row_hash")
+
+        if row_hash_col not in df.columns:
+            df = df.transform(add_row_hash, df.columns, row_hash_col, True)
+
+        df = df.transform(add_row_hash_mod, row_hash_col, modulus)
+        return df.where(col("row_hash_mod") < threshold).drop("row_hash_mod")
+
     return df.where(rand() < fraction)
 
 

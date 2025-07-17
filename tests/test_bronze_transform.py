@@ -32,7 +32,7 @@ def dummy(*args, **kwargs):
 for name in [
     'concat','regexp_extract','date_format','current_timestamp','when','col',
     'to_timestamp','to_date','regexp_replace','sha2','lit','trim','struct',
-    'to_json','expr','transform','array','rand'
+    'to_json','expr','transform','array','rand','conv','substring'
 ]:
     setattr(func_mod, name, dummy)
 
