@@ -27,7 +27,7 @@ resources:
             - task_key: job_settings
           for_each_task:
             inputs: "{{tasks.job_settings.values.bronze}}"
-            concurrency: 7
+            concurrency: 8
             task:
               task_key: bronze
               notebook_task:
@@ -75,7 +75,7 @@ resources:
             - task_key: silver_sequential_loop
           for_each_task:
             inputs: "{{tasks.job_settings.values.gold}}"
-            concurrency: 7
+            concurrency: 8
             task:
               task_key: gold
               notebook_task:
