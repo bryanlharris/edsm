@@ -50,3 +50,13 @@ sampled_df = sample_table(df, settings, spark)
 
 This configuration returns roughly 5% of `df` using a stable hash based on a
 modulus of 2,000,000.
+
+## Persisting samples
+
+When using `sample_table` to materialize a sampled table, configure the job to
+overwrite the destination rather than merge updates. Add the following setting
+so old rows do not accumulate across runs:
+
+```json
+"write_function": "functions.write.overwrite_table"
+```
