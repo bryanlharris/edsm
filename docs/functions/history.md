@@ -10,7 +10,8 @@ Return a sorted list of Delta versions that were produced by `STREAMING UPDATE` 
 
 Create or update `<table>_file_ingestion_history` with new file paths for each
 tracked version.  Each row stores the file path together with the transaction
-details from `DESCRIBE HISTORY`.
+details from `DESCRIBE HISTORY`.  Versions that cannot be read because a
+referenced file is missing are skipped.
 
 ## `transaction_history`
 

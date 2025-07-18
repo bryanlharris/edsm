@@ -64,15 +64,22 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
     records = []
 
     for version in version_list:
-        this_version_df = (
-            spark.read
-            .format("delta")
-            .option("versionAsOf", version)
-            .table(full_table_name)
-            .select(col("source_metadata.file_path").alias("file_path"))
-            .dropDuplicates()
-        )
-        file_paths = [row.file_path for row in this_version_df.collect()]
+        try:
+            this_version_df = (
+                spark.read
+                .format("delta")
+                .option("versionAsOf", version)
+                .table(full_table_name)
+                .select(col("source_metadata.file_path").alias("file_path"))
+                .dropDuplicates()
+            )
+            file_paths = [row.file_path for row in this_version_df.collect()]
+        except Exception as e:  # pragma: no cover - Spark error paths are tested manually
+            msg = str(e)
+            if "DELTA_FILE_NOT_FOUND_DETAILED" in msg or "DBR_FILE_NOT_EXIST" in msg:
+                print(f"Skipping version {version}: {msg}")
+                continue
+            raise
         new_files = set(file_paths) - prev_files
         prev_files.update(new_files)
         if new_files:
