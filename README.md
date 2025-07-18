@@ -17,3 +17,4 @@ See [docs/functions/read.md](docs/functions/read.md) for functions that read dat
 See [docs/functions/write.md](docs/functions/write.md) for functions that write and merge tables.
 See [docs/functions/history.md](docs/functions/history.md) for Delta transaction history utilities.
 See [docs/functions/quality.md](docs/functions/quality.md) for data quality helpers.
+See [docs/functions/dq_checks.md](docs/functions/dq_checks.md) for custom DQX check functions.
