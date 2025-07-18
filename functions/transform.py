@@ -1,3 +1,9 @@
+"""Transformation utilities used throughout the project.
+
+These helpers standardize schemas, cleanse data and provide sampling
+mechanisms for Spark DataFrames.  See ``docs/functions/transform.md`` for
+additional documentation.
+"""
 
 from pyspark.sql.types import (
     StructType,
