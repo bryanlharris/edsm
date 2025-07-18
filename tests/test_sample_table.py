@@ -86,7 +86,7 @@ class SimpleSampleTests(unittest.TestCase):
         self.assertEqual(captured.get('modulus'), 5)
         self.assertEqual(
             spark.query,
-            'SELECT approx_count_distinct(*) AS total FROM tbl'
+            'SELECT approx_count_distinct(id) AS total FROM tbl'
         )
 
 if __name__ == '__main__':
