@@ -11,3 +11,4 @@ See [docs/job_settings.md](docs/job_settings.md) for details about preparing con
 See [docs/ingest.md](docs/ingest.md) for an explanation of the ingest notebook.
 See [docs/sampling.md](docs/sampling.md) for information on generating sample data.
 See [docs/functions/config.md](docs/functions/config.md) for constants shared across notebooks.
+See [docs/functions/utility.md](docs/functions/utility.md) for utility helper functions.
