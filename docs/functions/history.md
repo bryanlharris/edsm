@@ -8,9 +8,13 @@ Return a sorted list of Delta versions that were produced by `STREAMING UPDATE` 
 
 ## `build_and_merge_file_history`
 
-Create or update `<table>_file_version_history` with new file paths introduced in each tracked version.
+Create or update `<table>_file_ingestion_history` with new file paths for each
+tracked version.  Each row stores the file path together with the full
+transaction details from `DESCRIBE HISTORY`.  Column types are preserved so
+struct and map fields remain intact.  Versions that cannot be read because a
+referenced file is missing are skipped.
 
 ## `transaction_history`
 
-Persist the output of `DESCRIBE HISTORY` in `<table>_transaction_history` for auditing purposes.
+Alias for `build_and_merge_file_history` to preserve backwards compatibility.
 

@@ -13,4 +13,4 @@ During execution the notebook performs the following steps:
 - Invokes the pipeline function or the individual read/transform/write functions.
 - Creates a DQX bad records table when applicable.
 - Builds a bad records table for bronze jobs if bad record files exist.
-- Builds file version and transaction history tables when `build_history` is enabled and the history schema is present.
+- Builds the file ingestion history table when `build_history` is enabled and the history schema is present. Column types are retained and versions that fail to load due to missing files are skipped.

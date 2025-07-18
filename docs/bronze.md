@@ -36,10 +36,12 @@ Bad records detected by Auto Loader are written to the path specified by
 ## History tables
 
 Bronze jobs default to `build_history: true`.  When `history_schema` is
-provided, two history tables are maintained alongside the bronze table:
+provided, a `<table>_file_ingestion_history` table is maintained alongside the
+bronze table.  This table records every file that contributes to a given Delta
+version along with the full transaction metadata from `DESCRIBE HISTORY`.  The
+history table uses the same column types as the original command so maps and
+structs are preserved.  If a Delta version cannot be read due to missing files,
+that version is skipped.
 
-- `<table>_file_version_history` records new files for each Delta version.
-- `<table>_transaction_history` stores the Delta transaction log.
-
-These tables allow downstream processes to track which source files produced
-each version of the bronze table.
+The history table allows downstream processes to track which source files
+produced each version of the bronze table.
