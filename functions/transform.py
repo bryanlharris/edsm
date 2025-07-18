@@ -340,7 +340,7 @@ def sample_table(df, settings, spark):
 
         total = (
             spark.sql(
-                f"SELECT approx_count_distinct(*) AS total FROM {settings['src_table_name']}"
+                f"SELECT approx_count_distinct({id_col}) AS total FROM {settings['src_table_name']}"
             )
             .collect()[0][0]
         )

@@ -14,6 +14,6 @@
     "ingest_time_column": "derived_ingest_time",
     "transform_function": "functions.transform.sample_table",
     "sample_type": "simple",
-    "sample_id_col": "id",
+    "sample_id_col": "systemid",
     "sample_size": "1k"
 }
