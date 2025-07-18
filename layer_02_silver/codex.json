@@ -3,7 +3,7 @@
     "job_type": "silver_standard_batch",
     "src_table_name": "edsm.bronze.codex",
     "dst_table_name": "edsm.silver.codex",
-    "requires": "systemswithcoordinates",
+    "requires": ["systemswithcoordinates", "stations", "powerplay" ],
     "business_key": [
         "name",
         "region",

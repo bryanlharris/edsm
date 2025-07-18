@@ -3,6 +3,7 @@
     "job_type": "silver_scd2_streaming",
     "src_table_name": "edsm.bronze.stations",
     "dst_table_name": "edsm.silver.stations",
+    "requires": "powerplay",
     "business_key": [
         "id",
         "body",
