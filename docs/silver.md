@@ -1,39 +1,23 @@
-# Silver layer configuration
+# Silver layer
 
-This project divides silver table processing into **parallel** and **sequential** tasks.
+Silver tables refine the cleaned bronze data into curated Delta tables. Each configuration file under `layer_02_silver` describes one table and usually sets `simple_settings` to `true` with an appropriate `job_type`.
 
-## `requires` field
+## Standard job types
 
-A silver table JSON file may include a `requires` key declaring dependencies on
-other silver tables. The value can be a single table name or a list of table
-names.
+Silver jobs read from existing tables and apply one of the predefined pipelines:
 
-Example:
+- **silver_scd2_streaming** – streams from a source table, transforms the data with `silver_scd2_transform` and upserts using `stream_upsert_table`.
+- **silver_upsert_streaming** – similar to the above but uses a standard transform and simple microbatch upserts.
+- **silver_standard_streaming** – reads from a table, transforms the rows and writes the stream without merges.
+- **silver_scd2_batch** – batch reads and upserts with SCD2 semantics.
+- **silver_standard_batch** – batch reads and writes a snapshot table.
 
-```json
-{
-  "job_type": "silver_standard_batch",
-  "src_table_name": "edsm.bronze.example",
-  "dst_table_name": "edsm.silver.example",
-  "requires": ["systemsPopulated", "stations"]
-}
-```
+These pipelines rely on helper functions from `functions.read`, `functions.transform` and `functions.write` just like the bronze layer.
 
-Tables with a `requires` key are executed in the **sequential** silver loop.
-They are sorted so that each table appears after all tables it requires. Tables
-without a `requires` key run in the **parallel** silver loop.
+## Transform details
 
-## Workflow summary
+`silver_standard_transform` cleans column names, casts data types and records the source file path. When `use_row_hash` is enabled the transform adds a stable hash over the surrogate key columns. `silver_scd2_transform` extends this logic with SCD2 tracking fields such as `valid_from` and `current_flag`.
 
-1. `00_job_settings.ipynb` scans all `layer_02_silver/*.json` files.
-2. Files without `requires` populate `silver_parallel`.
-3. Files with `requires` populate `silver_sequential`, ordered by dependency.
-4. `job-definition.yaml` defines two loops:
-   - `silver_parallel_loop` (runs tasks concurrently)
-   - `silver_sequential_loop` (runs tasks one at a time)
+## Writing results
 
-Dependencies are only evaluated among tables in `silver_sequential`.
-If a sequential table depends on a parallel table, ensure the parallel
-loop finishes first or coordinate via other mechanisms. This is handled
-in the job definition. You will see that the parallel silver runs before
-the sequential silver.
+Batch jobs call `write_upsert_snapshot` or `batch_upsert_scd2` depending on the job type. Streaming jobs use `stream_write_table` or `stream_upsert_table` with a microbatch helper. These functions merge new rows into the destination table or overwrite it for snapshot outputs.

@@ -5,7 +5,8 @@ This repository contains notebooks and utilities for ingesting data from the Eli
 For documentation, see [here](https://github.com/bryanlharris/Documentation).
 
 * [docs/bronze.md](docs/bronze.md) - Overview of the bronze layer.
-* [docs/silver.md](docs/silver.md) - Details about configuring sequential and parallel silver tasks.
+* [docs/silver.md](docs/silver.md) - Overview of how silver data is ingested, transformed and written.
+* [docs/silver_dependencies.md](docs/silver_dependencies.md) - Details about configuring sequential and parallel silver tasks.
 * [docs/ingest.md](docs/ingest.md) - Explanation of the ingest notebook.
 * [docs/sampling.md](docs/sampling.md) - Information on generating sample data.
 * [docs/job-definition.md](docs/job-definition.md) - Overview of the job-definition YAML.
