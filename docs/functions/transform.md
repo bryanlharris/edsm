@@ -1,7 +1,5 @@
 # `functions.transform`
 
-Helpers for cleaning, hashing and sampling DataFrames during ingestion pipelines.
-
 ## Main transforms
 
 ### `bronze_standard_transform`
