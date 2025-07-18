@@ -4,6 +4,7 @@ Silver tables refine the cleaned bronze data into curated Delta tables. Each con
 
 ## Standard job types
 
+These are the possible values for `job_type` when `simple_settings` is set to `true` in the json file.
 Silver jobs read from existing tables and apply one of the predefined pipelines:
 
 - **silver_scd2_streaming** – streams from a source table, transforms the data with `silver_scd2_transform` and upserts using `stream_upsert_table`.
