@@ -24,3 +24,4 @@ For documentation, see [here](https://github.com/bryanlharris/Documentation).
 * [docs/utilities/downloader.md](docs/utilities/downloader.md) - Details about fetching nightly dumps.
 * [docs/utilities/profile_silver_table.md](docs/utilities/profile_silver_table.md) - Notebook for generating DQX rules from a silver table.
 * [docs/utilities/drop_history_tables.md](docs/utilities/drop_history_tables.md) - Notebook for removing history tables.
+* [docs/utilities/migrate_history_tables.md](docs/utilities/migrate_history_tables.md) - Convert and remove old history tables.
