@@ -15,7 +15,5 @@
     "transform_function": "functions.transform.sample_table",
     "sample_type": "simple",
     "sample_id_col": "id",
-    "sample_size": "1k",
-    "sample_fraction": 0.01,
-    "hash_modulus": 1000000
+    "sample_size": "1k"
 }
