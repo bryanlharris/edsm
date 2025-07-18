@@ -191,7 +191,10 @@ def add_row_hash_mod(df, column_name, modulus):
     """
     return df.withColumn(
         "row_hash_mod",
-        (conv(substring(col(column_name), 1, 16), 16, 10).cast("long") % modulus)
+        (
+            conv(substring(col(column_name), 1, 16), 16, 10)
+            .cast("decimal(38,0)") % modulus
+        ).cast("long")
     )
 
 
