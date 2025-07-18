@@ -18,3 +18,6 @@ See [docs/functions/write.md](docs/functions/write.md) for functions that write 
 See [docs/functions/history.md](docs/functions/history.md) for Delta transaction history utilities.
 See [docs/functions/quality.md](docs/functions/quality.md) for data quality helpers.
 See [docs/utilities/downloader.md](docs/utilities/downloader.md) for details about fetching nightly dumps.
+See [docs/functions/sanity.md](docs/functions/sanity.md) for sanity helper functions.
+See [docs/functions/rescue.md](docs/functions/rescue.md) for table rescue utilities.
+See [docs/functions/dq_checks.md](docs/functions/dq_checks.md) for custom DQX check functions.
