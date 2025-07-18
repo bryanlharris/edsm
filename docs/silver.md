@@ -22,3 +22,5 @@ These pipelines rely on helper functions from `functions.read`, `functions.trans
 ## Writing results
 
 Batch jobs call `write_upsert_snapshot` or `batch_upsert_scd2` depending on the job type. Streaming jobs use `stream_write_table` or `stream_upsert_table` with a microbatch helper. These functions merge new rows into the destination table or overwrite it for snapshot outputs.
+
+Snapshot means selecting rn=1 on a window on the business key ordered by ingest time. The intent of a snapshot is the latest & newest record per business key (usually an id).
