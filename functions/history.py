@@ -1,6 +1,6 @@
 import json
 from .utility import create_table_if_not_exists, truncate_table_if_exists
-from pyspark.sql.functions import col, lit, expr
+from pyspark.sql.functions import col, lit
 
 def describe_and_filter_history(full_table_name, spark):
     """Return ordered versions that correspond to streaming updates or merges."""
@@ -17,13 +17,13 @@ def describe_and_filter_history(full_table_name, spark):
     return version_list
 
 def build_and_merge_file_history(full_table_name, history_schema, spark):
-    """Create a file history table tracking new files across versions."""
+    """Create or update a file ingestion history table combining lineage and transaction details."""
 
     catalog, schema, table = full_table_name.split(".")
-    file_version_table_name = f"{catalog}.{history_schema}.{table}_file_version_history"
-    if spark.catalog.tableExists(file_version_table_name):
+    ingestion_table_name = f"{catalog}.{history_schema}.{table}_file_ingestion_history"
+    if spark.catalog.tableExists(ingestion_table_name):
         last_version = (
-            spark.table(file_version_table_name)
+            spark.table(ingestion_table_name)
             .agg({"version": "max"})
             .collect()[0][0]
         )
@@ -32,16 +32,13 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
     else:
         last_version = -1
 
-    current_max_version = (
-        spark.sql(f"describe history {full_table_name}")
-        .agg({"version": "max"})
-        .collect()[0][0]
-    )
+    hist_df = spark.sql(f"describe history {full_table_name}")
+    current_max_version = hist_df.agg({"version": "max"}).collect()[0][0]
     if current_max_version is None:
         current_max_version = -1
 
     if last_version > current_max_version:
-        truncate_table_if_exists(file_version_table_name, spark)
+        truncate_table_if_exists(ingestion_table_name, spark)
         last_version = -1
 
     version_list = [
@@ -64,7 +61,7 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
     else:
         prev_files = set()
 
-    file_version_history_records = []
+    records = []
 
     for version in version_list:
         this_version_df = (
@@ -75,51 +72,55 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
             .select(col("source_metadata.file_path").alias("file_path"))
             .dropDuplicates()
         )
-        file_path_list = this_version_df.collect()
-        file_path_list = [row.file_path for row in file_path_list]
-        new_files = set(file_path_list) - prev_files
+        file_paths = [row.file_path for row in this_version_df.collect()]
+        new_files = set(file_paths) - prev_files
         prev_files.update(new_files)
-        if len(new_files) > 0:
-            file_version_history_records.append((version, list(new_files)))
+        if new_files:
+            hist_row = hist_df.filter(col("version") == lit(version)).collect()[0].asDict()
+            for fp in new_files:
+                records.append(
+                    (
+                        fp,
+                        full_table_name,
+                        hist_row.get("version"),
+                        hist_row.get("timestamp"),
+                        hist_row.get("userId"),
+                        hist_row.get("userName"),
+                        hist_row.get("operation"),
+                        json.dumps(hist_row.get("operationParameters")),
+                        hist_row.get("job"),
+                        hist_row.get("notebook"),
+                        hist_row.get("clusterId"),
+                        hist_row.get("readVersion"),
+                        hist_row.get("isolationLevel"),
+                        hist_row.get("isBlindAppend"),
+                        json.dumps(hist_row.get("operationMetrics")),
+                        hist_row.get("userMetadata"),
+                        hist_row.get("engineInfo"),
+                    )
+                )
 
-    if len(file_version_history_records) > 0:
-        df = spark.createDataFrame(file_version_history_records, "version LONG, file_path ARRAY<STRING>")
-        create_table_if_not_exists(df, file_version_table_name, spark)
+    if records:
+        schema_str = (
+            "file_path STRING, table_name STRING, version INT, timestamp TIMESTAMP, "
+            "userId STRING, userName STRING, operation STRING, operationParameters STRING, "
+            "job STRING, notebook STRING, clusterId STRING, readVersion INT, isolationLevel STRING, "
+            "isBlindAppend BOOLEAN, operationMetrics STRING, userMetadata STRING, engineInfo STRING"
+        )
+        df = spark.createDataFrame(records, schema_str)
+        create_table_if_not_exists(df, ingestion_table_name, spark)
         df.createOrReplaceTempView("df")
-        spark.sql(f"""
-            merge into {file_version_table_name} as target
+        spark.sql(
+            f"""
+            merge into {ingestion_table_name} as target
             using df as source
-            on target.version = source.version
+            on target.file_path = source.file_path and target.version = source.version
             when matched then update set *
             when not matched then insert *
-        """)
+        """
+        )
 
 def transaction_history(full_table_name, history_schema, spark):
-    """Record the Delta transaction history for ``full_table_name``."""
+    """Backward compatible wrapper for ``build_and_merge_file_history``."""
 
-    catalog, schema, table = full_table_name.split(".")
-    transaction_table_name = f"{catalog}.{history_schema}.{table}_transaction_history"
-    df = (
-        spark.sql(f"describe history {full_table_name}")
-        .withColumn("table_name", lit(full_table_name))
-        .selectExpr("table_name", "* except (table_name)")
-    )
-    create_table_if_not_exists(df, transaction_table_name, spark)
-    df.createOrReplaceTempView("df")
-    spark.sql(f"""
-        merge into {transaction_table_name} as target
-        using df as source
-        on target.version = source.version
-        when matched then update set *
-        when not matched then insert *
-    """)
-
-
-
-
-
-
-
-
-
-
+    build_and_merge_file_history(full_table_name, history_schema, spark)
