@@ -22,3 +22,4 @@ For documentation, see [here](https://github.com/bryanlharris/Documentation).
 * [docs/functions/sanity.md](docs/functions/sanity.md) - Sanity helper functions.
 * [docs/functions/rescue.md](docs/functions/rescue.md) - Table rescue utilities.
 * [docs/utilities/downloader.md](docs/utilities/downloader.md) - Details about fetching nightly dumps.
+* [docs/utilities/drop_history_tables.md](docs/utilities/drop_history_tables.md) - Notebook for removing history tables.
