@@ -5,13 +5,20 @@ behaviour is controlled by a few settings passed in the `settings` dictionary.
 
 ## Sample type
 
-The `sample_type` setting controls whether sampling is random or deterministic.
+The `sample_type` setting controls how rows are selected.
 If omitted, random sampling is used.
 
 * `random` – rows are selected based on the output of `rand()`.
 * `deterministic` – rows are selected using a stable hash of each row. This
   ensures the same subset is returned each time when the input data is
   unchanged.
+* `simple` – rows are selected by hashing a specific ID column and applying
+  ``pmod(hash(id), N) = 0``. ``N`` is calculated as ``approx_count_distinct(*) /
+  sample_size`` using the table referenced by ``src_table_name``. The ``settings``
+  dictionary must include ``sample_id_col`` naming the column to hash and
+  ``sample_size`` specifying how many rows to keep. The ``sample_size`` value
+  supports SI notation such as ``1k`` or ``5m``. Only rows where the ID is not
+  null are considered. ``sample_fraction`` is ignored for this mode.
 
 ## Sample fraction
 
