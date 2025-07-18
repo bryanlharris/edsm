@@ -34,4 +34,6 @@ without a `requires` key run in the **parallel** silver loop.
 
 Dependencies are only evaluated among tables in `silver_sequential`.
 If a sequential table depends on a parallel table, ensure the parallel
-loop finishes first or coordinate via other mechanisms.
+loop finishes first or coordinate via other mechanisms. This is handled
+in the job definition. You will see that the parallel silver runs before
+the sequential silver.
