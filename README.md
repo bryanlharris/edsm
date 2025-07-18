@@ -4,24 +4,20 @@ This repository contains notebooks and utilities for ingesting data from the Eli
 
 For documentation, see [here](https://github.com/bryanlharris/Documentation).
 
-See [docs/bronze.md](docs/bronze.md) for an overview of the bronze layer.
-See [docs/silver.md](docs/silver.md) for details about configuring sequential and parallel silver tasks.
-
-See [docs/ingest.md](docs/ingest.md) for an explanation of the ingest notebook.
-See [docs/sampling.md](docs/sampling.md) for information on generating sample data.
-
-See [docs/job-definition.md](docs/job-definition.md) for an overview of the job-definition YAML.
-See [docs/job_settings.md](docs/job_settings.md) for details about preparing configuration for each task.
-See [docs/custom.md](docs/custom.md) for creating and using custom transforms.
-
-See [docs/functions/config.md](docs/functions/config.md) for constants shared across notebooks.
-See [docs/functions/utility.md](docs/functions/utility.md) for utility helper functions.
-See [docs/functions/read.md](docs/functions/read.md) for functions that read data sources.
-See [docs/functions/write.md](docs/functions/write.md) for functions that write and merge tables.
-See [docs/functions/history.md](docs/functions/history.md) for Delta transaction history utilities.
-See [docs/functions/quality.md](docs/functions/quality.md) for data quality helpers.
-See [docs/functions/dq_checks.md](docs/functions/dq_checks.md) for custom DQX check functions.
-See [docs/functions/sanity.md](docs/functions/sanity.md) for sanity helper functions.
-See [docs/functions/rescue.md](docs/functions/rescue.md) for table rescue utilities.
-
-See [docs/utilities/downloader.md](docs/utilities/downloader.md) for details about fetching nightly dumps.
+* [docs/bronze.md](docs/bronze.md) - Overview of the bronze layer.
+* [docs/silver.md](docs/silver.md) - Details about configuring sequential and parallel silver tasks.
+* [docs/ingest.md](docs/ingest.md) - Explanation of the ingest notebook.
+* [docs/sampling.md](docs/sampling.md) - Information on generating sample data.
+* [docs/job-definition.md](docs/job-definition.md) - Overview of the job-definition YAML.
+* [docs/job_settings.md](docs/job_settings.md) - Details about preparing configuration for each task.
+* [docs/custom.md](docs/custom.md) - Creating and using custom transforms.
+* [docs/functions/config.md](docs/functions/config.md) - Constants shared across notebooks.
+* [docs/functions/utility.md](docs/functions/utility.md) - Utility helper functions.
+* [docs/functions/read.md](docs/functions/read.md) - Functions that read data sources.
+* [docs/functions/write.md](docs/functions/write.md) - Functions that write and merge tables.
+* [docs/functions/history.md](docs/functions/history.md) - Delta transaction history utilities.
+* [docs/functions/quality.md](docs/functions/quality.md) - Data quality helpers.
+* [docs/functions/dq_checks.md](docs/functions/dq_checks.md) - Custom DQX check functions.
+* [docs/functions/sanity.md](docs/functions/sanity.md) - Sanity helper functions.
+* [docs/functions/rescue.md](docs/functions/rescue.md) - Table rescue utilities.
+* [docs/utilities/downloader.md](docs/utilities/downloader.md) - Details about fetching nightly dumps.
