@@ -3,6 +3,7 @@
 This repository contains notebooks and utilities for ingesting data from the Elite Dangerous Star Map (EDSM) nightly dumps.
 
 For documentation, see [here](https://github.com/bryanlharris/Documentation).
+
 See [docs/silver.md](docs/silver.md) for details about configuring sequential and parallel silver tasks.
 See [docs/bronze.md](docs/bronze.md) for an overview of the bronze layer.
 See [docs/custom.md](docs/custom.md) for creating and using custom transforms.
@@ -11,4 +12,5 @@ See [docs/job_settings.md](docs/job_settings.md) for details about preparing con
 See [docs/ingest.md](docs/ingest.md) for an explanation of the ingest notebook.
 See [docs/sampling.md](docs/sampling.md) for information on generating sample data.
 See [docs/functions/config.md](docs/functions/config.md) for constants shared across notebooks.
+See [docs/functions/utility.md](docs/functions/utility.md) for utility helper functions.
 See [docs/functions/read.md](docs/functions/read.md) for functions that read data sources.
