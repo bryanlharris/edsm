@@ -1,12 +1,16 @@
 # Silver layer dependencies
 
-This document explains how silver tables declare and resolve dependencies.  Silver processing is divided into **parallel** and **sequential** tasks.
+This document explains how silver tables declare and resolve dependencies.
+Silver is the only layer where tables can have dependencies on each other.
+Therefore processing is divided into **parallel** and **sequential** tasks such
+that most tables can be built in parallel to save money, but some tables will
+need to be built sequentially to guarantee they are built after their dependencies.
 
 ## `requires` field
 
 A silver table JSON file may include a `requires` key declaring dependencies on
 other silver tables. The value can be a single table name or a list of table
-names.
+names. Always use short names.
 
 Example:
 
@@ -21,7 +25,8 @@ Example:
 
 Tables with a `requires` key are executed in the **sequential** silver loop.
 They are sorted so that each table appears after all tables it depends on.
-Tables without a `requires` key run in the **parallel** silver loop.
+Tables without a `requires` key run in the **parallel** silver loop. The
+parallel loop always runs before the sequential loop.
 
 ## Workflow summary
 
