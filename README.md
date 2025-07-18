@@ -7,3 +7,7 @@ See [docs/silver.md](docs/silver.md) for details about configuring sequential an
 See [docs/bronze.md](docs/bronze.md) for an overview of the bronze layer.
 See [docs/custom.md](docs/custom.md) for creating and using custom transforms.
 See [docs/job-definition.md](docs/job-definition.md) for an overview of the job-definition YAML.
+See [docs/job_settings.md](docs/job_settings.md) for details about preparing configuration for each task.
+See [docs/ingest.md](docs/ingest.md) for an explanation of the ingest notebook.
+See [docs/sampling.md](docs/sampling.md) for information on generating sample data.
+See [docs/functions/config.md](docs/functions/config.md) for constants shared across notebooks.
