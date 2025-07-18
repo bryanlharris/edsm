@@ -1,0 +1,45 @@
+# Bronze layer
+
+Bronze tables ingest the raw EDSM export files using Databricks Auto Loader.
+Each table is described by a JSON file under `layer_01_bronze`.  These files
+usually set `simple_settings` to `true` and `job_type` to
+`bronze_standard_streaming`.
+
+## Standard streaming job
+
+When the job type is `bronze_standard_streaming` the settings are expanded at
+runtime.  The following functions are applied:
+
+- `functions.read.stream_read_cloudfiles` reads new files from the landing path.
+- `functions.transform.bronze_standard_transform` attaches metadata and cleans
+the data.
+- `functions.write.stream_write_table` writes the result to the destination
+  Delta table.
+
+Additional options such as `readStream_load`, `readStreamOptions` and
+`writeStreamOptions` are derived from `dst_table_name`.  Checkpoints and schema
+information are stored under `utility/<table>` while input files are loaded from
+`landing/`.
+
+## Transform details
+
+`bronze_standard_transform` adds an `ingest_time` column and copies ingestion
+metadata from `_metadata` into `source_metadata`.  If
+`add_derived_ingest_time` is enabled a `derived_ingest_time` field is extracted
+from the file path using `derived_ingest_time_regex`.  The transform also ensures
+that a `_rescued_data` column exists so malformed records can be captured.
+
+Bad records detected by Auto Loader are written to the path specified by
+`badRecordsPath`.  After each run the job attempts to create a table named
+`<dst_table_name>_bad_records` from those files for inspection.
+
+## History tables
+
+Bronze jobs default to `build_history: true`.  When `history_schema` is
+provided, two history tables are maintained alongside the bronze table:
+
+- `<table>_file_version_history` records new files for each Delta version.
+- `<table>_transaction_history` stores the Delta transaction log.
+
+These tables allow downstream processes to track which source files produced
+each version of the bronze table.
