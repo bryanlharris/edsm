@@ -1,4 +1,3 @@
-import json
 from .utility import create_table_if_not_exists, truncate_table_if_exists
 from pyspark.sql.functions import col, lit
 
@@ -45,6 +44,14 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
         v for v in describe_and_filter_history(full_table_name, spark) if v > last_version
     ]
 
+    if version_list:
+        hist_dict = {
+            row['version']: row.asDict(recursive=True)
+            for row in hist_df.collect()
+        }
+    else:
+        hist_dict = {}
+
     if last_version >= 0:
         prev_files = {
             row.file_path
@@ -83,38 +90,16 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
         new_files = set(file_paths) - prev_files
         prev_files.update(new_files)
         if new_files:
-            hist_row = hist_df.filter(col("version") == lit(version)).collect()[0].asDict()
+            hist_row = hist_dict.get(version)
             for fp in new_files:
-                records.append(
-                    (
-                        fp,
-                        full_table_name,
-                        hist_row.get("version"),
-                        hist_row.get("timestamp"),
-                        hist_row.get("userId"),
-                        hist_row.get("userName"),
-                        hist_row.get("operation"),
-                        json.dumps(hist_row.get("operationParameters")),
-                        hist_row.get("job"),
-                        hist_row.get("notebook"),
-                        hist_row.get("clusterId"),
-                        hist_row.get("readVersion"),
-                        hist_row.get("isolationLevel"),
-                        hist_row.get("isBlindAppend"),
-                        json.dumps(hist_row.get("operationMetrics")),
-                        hist_row.get("userMetadata"),
-                        hist_row.get("engineInfo"),
-                    )
-                )
+                records.append({"file_path": fp, "table_name": full_table_name, **hist_row})
 
     if records:
-        schema_str = (
-            "file_path STRING, table_name STRING, version INT, timestamp TIMESTAMP, "
-            "userId STRING, userName STRING, operation STRING, operationParameters STRING, "
-            "job STRING, notebook STRING, clusterId STRING, readVersion INT, isolationLevel STRING, "
-            "isBlindAppend BOOLEAN, operationMetrics STRING, userMetadata STRING, engineInfo STRING"
+        df = spark.createDataFrame(records).select(
+            "file_path",
+            "table_name",
+            *hist_df.columns,
         )
-        df = spark.createDataFrame(records, schema_str)
         create_table_if_not_exists(df, ingestion_table_name, spark)
         df.createOrReplaceTempView("df")
         spark.sql(
