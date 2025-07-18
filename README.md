@@ -14,3 +14,6 @@ See [docs/sampling.md](docs/sampling.md) for information on generating sample da
 See [docs/functions/config.md](docs/functions/config.md) for constants shared across notebooks.
 See [docs/functions/utility.md](docs/functions/utility.md) for utility helper functions.
 See [docs/functions/read.md](docs/functions/read.md) for functions that read data sources.
+See [docs/functions/write.md](docs/functions/write.md) for functions that write and merge tables.
+See [docs/functions/history.md](docs/functions/history.md) for Delta transaction history utilities.
+See [docs/functions/quality.md](docs/functions/quality.md) for data quality helpers.
