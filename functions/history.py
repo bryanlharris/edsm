@@ -44,14 +44,6 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
         v for v in describe_and_filter_history(full_table_name, spark) if v > last_version
     ]
 
-    if version_list:
-        hist_dict = {
-            row['version']: row.asDict(recursive=True)
-            for row in hist_df.collect()
-        }
-    else:
-        hist_dict = {}
-
     if last_version >= 0:
         prev_files = {
             row.file_path
@@ -68,7 +60,7 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
     else:
         prev_files = set()
 
-    records = []
+    records_df = None
 
     for version in version_list:
         try:
@@ -87,15 +79,18 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
                 print(f"Skipping version {version}: {msg}")
                 continue
             raise
+
         new_files = set(file_paths) - prev_files
         prev_files.update(new_files)
         if new_files:
-            hist_row = hist_dict.get(version)
-            for fp in new_files:
-                records.append({"file_path": fp, "table_name": full_table_name, **hist_row})
+            file_df = spark.createDataFrame([(fp,) for fp in new_files], "file_path STRING")
+            file_df = file_df.withColumn("table_name", lit(full_table_name))
+            hist_row_df = hist_df.filter(col("version") == version)
+            new_df = file_df.crossJoin(hist_row_df)
+            records_df = new_df if records_df is None else records_df.unionByName(new_df)
 
-    if records:
-        df = spark.createDataFrame(records).select(
+    if records_df is not None:
+        df = records_df.select(
             "file_path",
             "table_name",
             *hist_df.columns,
