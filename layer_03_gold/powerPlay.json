@@ -11,5 +11,6 @@
     "transform_function": "functions.transform.sample_table",
     "sample_type": "simple",
     "sample_id_col": "id",
-    "sample_size": "1k"
+    "sample_size": "1k",
+    "write_function": "functions.write.overwrite_table"
 }
