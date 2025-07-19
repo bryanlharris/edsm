@@ -2,16 +2,20 @@ from .utility import create_table_if_not_exists, truncate_table_if_exists
 from pyspark.sql.functions import col, lit, current_timestamp
 
 def describe_and_filter_history(full_table_name, spark):
-    """Return ordered versions that correspond to streaming updates or merges."""
+    """Return ordered versions produced by streaming updates, writes, or merges."""
 
     hist = spark.sql(f"describe history {full_table_name}")
-    update_or_merge_version_rows = (
-        hist.filter((col("operation") == "STREAMING UPDATE") | (col("operation") == "MERGE"))
+    version_rows = (
+        hist.filter(
+            (col("operation") == "STREAMING UPDATE")
+            | (col("operation") == "MERGE")
+            | (col("operation") == "WRITE")
+        )
         .select("version")
         .distinct()
         .collect()
     )
-    version_list = [row["version"] for row in update_or_merge_version_rows]
+    version_list = [row["version"] for row in version_rows]
     version_list = sorted(version_list)
     return version_list
 
