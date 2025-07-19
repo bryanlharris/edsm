@@ -11,9 +11,12 @@ Return a sorted list of Delta versions that were produced by `STREAMING UPDATE`,
 Create or update `<table>_file_ingestion_history` with new file paths for each
 tracked version. Each row stores the file path together with the full
 transaction details from `DESCRIBE HISTORY` plus an ``ingest_time`` column
-recording when the row was inserted. Column types are preserved so struct and
-map fields remain intact. Versions that cannot be read because a referenced
-file is missing are skipped.
+recording when the row was inserted. A hash of ``file_path``, ``table_name``,
+``timestamp`` and ``ingest_time`` is stored in ``row_hash`` so duplicate rows are
+ignored on merge.
+This prevents duplicates if the Delta table version is reset (for example after
+cloning). Column types are preserved so struct and map fields remain intact.
+Versions that cannot be read because a referenced file is missing are skipped.
 
 ## `transaction_history`
 
