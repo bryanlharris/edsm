@@ -30,6 +30,11 @@ functions_pkg = types.ModuleType('functions')
 functions_pkg.__path__ = [str(pkg_path)]
 sys.modules.setdefault('functions', functions_pkg)
 
+# Stub out functions.transform.add_row_hash to avoid pyspark dependencies
+transform_mod = types.ModuleType('functions.transform')
+transform_mod.add_row_hash = lambda df, cols, name='row_hash', use_row_hash=False: df
+sys.modules['functions.transform'] = transform_mod
+
 # Import history module dynamically
 hist_path = pathlib.Path(__file__).resolve().parents[1] / 'functions' / 'history.py'
 spec = importlib.util.spec_from_file_location('functions.history', hist_path)

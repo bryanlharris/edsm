@@ -1,4 +1,5 @@
 from .utility import create_table_if_not_exists, truncate_table_if_exists
+from .transform import add_row_hash
 from pyspark.sql.functions import col, lit, current_timestamp
 
 def describe_and_filter_history(full_table_name, spark):
@@ -106,13 +107,16 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
             "ingest_time",
             *hist_df.columns,
         )
+        # hash only the columns relevant for deduplication
+        hash_cols = ["file_path", "table_name", "timestamp", "ingest_time"]
+        df = df.transform(add_row_hash, hash_cols, "row_hash", True)
         create_table_if_not_exists(df, ingestion_table_name, spark)
         df.createOrReplaceTempView("df")
         spark.sql(
             f"""
             merge into {ingestion_table_name} as target
             using df as source
-            on target.file_path = source.file_path and target.version = source.version
+            on target.row_hash = source.row_hash
             when matched then update set *
             when not matched then insert *
         """
