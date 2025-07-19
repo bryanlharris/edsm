@@ -17,6 +17,7 @@ sql.functions = func_mod
 func_mod.col = lambda x: None
 func_mod.lit = lambda x: None
 func_mod.expr = lambda x: None
+func_mod.current_timestamp = lambda: None
 types_mod.StructType = type('StructType', (), {})
 sys.modules['pyspark'] = pyspark
 sys.modules['pyspark.sql'] = sql

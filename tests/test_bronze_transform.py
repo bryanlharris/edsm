@@ -10,6 +10,7 @@ pyspark = types.ModuleType('pyspark')
 sql = types.ModuleType('pyspark.sql')
 types_mod = types.ModuleType('pyspark.sql.types')
 func_mod = types.ModuleType('pyspark.sql.functions')
+window_mod = types.ModuleType('pyspark.sql.window')
 sql.types = types_mod
 sql.functions = func_mod
 pyspark.sql = sql
@@ -17,6 +18,7 @@ sys.modules['pyspark'] = pyspark
 sys.modules['pyspark.sql'] = sql
 sys.modules['pyspark.sql.types'] = types_mod
 sys.modules['pyspark.sql.functions'] = func_mod
+sys.modules['pyspark.sql.window'] = window_mod
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
@@ -35,6 +37,8 @@ for name in [
     'to_json','expr','transform','array','rand','conv','substring','hash','pmod'
 ]:
     setattr(func_mod, name, dummy)
+func_mod.row_number = dummy
+window_mod.Window = type('Window', (), {})
 
 # Import the module under test after faking pyspark
 transform_path = pathlib.Path(__file__).resolve().parents[1] / 'functions' / 'transform.py'
