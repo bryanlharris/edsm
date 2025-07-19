@@ -50,3 +50,10 @@ Print the mapping between streaming batch IDs and bronze versions by reading Del
 
 Create `<dst_table_name>_bad_records` from JSON files in `badRecordsPath`. If no files are present the table is dropped. An exception is raised if the table exists after creation, signalling that bad records were found.
 
+## `parse_si`
+
+Return a numeric value converted from a string using SI notation (k, m, g, t).
+
+Parameters
+- **value**: string or numeric value to convert
+
