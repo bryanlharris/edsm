@@ -1,5 +1,12 @@
 from .utility import create_table_if_not_exists, truncate_table_if_exists
-from pyspark.sql.functions import col, lit, current_timestamp
+from pyspark.sql.functions import (
+    col,
+    lit,
+    current_timestamp,
+    sha2,
+    to_json,
+    struct,
+)
 
 def describe_and_filter_history(full_table_name, spark):
     """Return ordered versions that correspond to streaming updates or merges."""
@@ -24,7 +31,8 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
 
     catalog, schema, table = full_table_name.split(".")
     ingestion_table_name = f"{catalog}.{history_schema}.{table}_file_ingestion_history"
-    if spark.catalog.tableExists(ingestion_table_name):
+    ingestion_exists = spark.catalog.tableExists(ingestion_table_name)
+    if ingestion_exists:
         last_version = (
             spark.table(ingestion_table_name)
             .agg({"version": "max"})
@@ -102,13 +110,62 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
             "ingest_time",
             *hist_df.columns,
         )
-        create_table_if_not_exists(df, ingestion_table_name, spark)
+        df = df.withColumn(
+            "row_hash",
+            sha2(
+                to_json(
+                    struct(
+                        "file_path",
+                        *[c for c in hist_df.columns if c != "version"],
+                    )
+                ),
+                256,
+            ),
+        )
+        table_created = create_table_if_not_exists(df, ingestion_table_name, spark)
+
+        table_cols = []
+        if ingestion_exists:
+            table_cols = spark.table(ingestion_table_name).columns
+            if "row_hash" not in table_cols:
+                spark.sql(f"ALTER TABLE {ingestion_table_name} ADD COLUMNS (row_hash STRING)")
+                existing_df = spark.table(ingestion_table_name)
+                existing_df = existing_df.withColumn(
+                    "row_hash",
+                    sha2(
+                        to_json(
+                            struct(
+                                "file_path",
+                                *[c for c in existing_df.columns if c not in ("version", "row_hash")],
+                            )
+                        ),
+                        256,
+                    ),
+                )
+                existing_df.createOrReplaceTempView("existing_df")
+                spark.sql(
+                    f"""
+                    MERGE INTO {ingestion_table_name} as target
+                    USING existing_df as source
+                    ON target.file_path = source.file_path AND target.version = source.version
+                    WHEN MATCHED THEN UPDATE SET row_hash = source.row_hash
+                    """
+                )
+                table_cols.append("row_hash")
+
         df.createOrReplaceTempView("df")
+
+        merge_condition = (
+            "target.row_hash = source.row_hash"
+            if (table_created or "row_hash" in table_cols)
+            else "target.file_path = source.file_path and target.version = source.version"
+        )
+
         spark.sql(
             f"""
             merge into {ingestion_table_name} as target
             using df as source
-            on target.file_path = source.file_path and target.version = source.version
+            on {merge_condition}
             when matched then update set *
             when not matched then insert *
         """
