@@ -40,19 +40,7 @@ from pyspark.sql.functions import (
 )
 import re
 
-
-def parse_si(value):
-    """Return ``value`` converted to a float using SI notation."""
-
-    if isinstance(value, (int, float)):
-        return float(value)
-    if not isinstance(value, str):
-        raise TypeError("value must be a number or string")
-    s = value.strip().lower()
-    scale = {"k": 1e3, "m": 1e6, "g": 1e9, "t": 1e12}
-    if s and s[-1] in scale:
-        return float(s[:-1]) * scale[s[-1]]
-    return float(s)
+from .utility import parse_si
 
 
 def bronze_standard_transform(df, settings, spark):

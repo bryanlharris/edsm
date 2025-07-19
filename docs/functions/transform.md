@@ -117,9 +117,4 @@ Parameters
 - **settings**: must include `ingest_time_column`
 - **spark**: Spark session (unused)
 
-### `parse_si`
-Return a numeric value converted from a string using SI notation (k, m, g, t).
-
-Parameters
-- **value**: string or numeric value to convert
 
