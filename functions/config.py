@@ -3,6 +3,10 @@ from pathlib import Path
 # Root of the project on the local filesystem
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
+# Base S3 paths for external volumes
+S3_ROOT_LANDING = "s3://edsm/landing/"
+S3_ROOT_UTILITY = "s3://edsm/utility/"
+
 # Map short ``job_type`` names to ingest function combinations.
 JOB_TYPE_MAP = {
     "bronze_standard_streaming": {
@@ -44,8 +48,6 @@ JOB_TYPE_MAP = {
     },
 }
 
-# Base S3 paths for external volumes
-S3_ROOT_LANDING = "s3://edsm/landing/"
-S3_ROOT_UTILITY = "s3://edsm/utility/"
+
 
 
