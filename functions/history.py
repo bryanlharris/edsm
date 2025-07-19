@@ -1,5 +1,5 @@
 from .utility import create_table_if_not_exists, truncate_table_if_exists
-from pyspark.sql.functions import col, lit
+from pyspark.sql.functions import col, lit, current_timestamp
 
 def describe_and_filter_history(full_table_name, spark):
     """Return ordered versions that correspond to streaming updates or merges."""
@@ -16,7 +16,11 @@ def describe_and_filter_history(full_table_name, spark):
     return version_list
 
 def build_and_merge_file_history(full_table_name, history_schema, spark):
-    """Create or update a file ingestion history table combining lineage and transaction details."""
+    """Create or update a file ingestion history table combining lineage and transaction details.
+
+    Each new row includes an ``ingest_time`` column with the timestamp when the
+    record was added to the history table.
+    """
 
     catalog, schema, table = full_table_name.split(".")
     ingestion_table_name = f"{catalog}.{history_schema}.{table}_file_ingestion_history"
@@ -86,13 +90,16 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
             file_df = spark.createDataFrame([(fp,) for fp in new_files], "file_path STRING")
             file_df = file_df.withColumn("table_name", lit(full_table_name))
             hist_row_df = hist_df.filter(col("version") == version)
-            new_df = file_df.crossJoin(hist_row_df)
+            new_df = file_df.crossJoin(hist_row_df).withColumn(
+                "ingest_time", current_timestamp()
+            )
             records_df = new_df if records_df is None else records_df.unionByName(new_df)
 
     if records_df is not None:
         df = records_df.select(
             "file_path",
             "table_name",
+            "ingest_time",
             *hist_df.columns,
         )
         create_table_if_not_exists(df, ingestion_table_name, spark)
