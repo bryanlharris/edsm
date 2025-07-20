@@ -221,46 +221,21 @@ def initialize_schemas_and_volumes(spark):
         "gold": ["utility"],
     }
 
+    missing_history = False
+
     for color in ["bronze", "silver", "gold", "history"]:
         for catalog, schema in sorted(schemas[color]):
+            if color == "history" and not schema_exists(catalog, schema, spark):
+                print(f"\tWARNING: History schema does not exist: {catalog}.{schema}")
+                missing_history = True
             create_schema_if_not_exists(catalog, schema, spark)
             spark.sql(f"GRANT USAGE ON SCHEMA {catalog}.{schema} TO `account users`")
             for volume in volume_map.get(color, []):
                 create_volume_if_not_exists(catalog, schema, volume, spark)
 
-    print("Sanity check: Initialize schemas and volumes check passed.")
-
-
-def warn_missing_history_schema(spark):
-    """Warn when the configured history schema does not already exist."""
-
-    bronze_files, silver_files, gold_files = _discover_settings_files()
-    file_map = {"bronze": bronze_files, "silver": silver_files, "gold": gold_files}
-
-    checked = set()
-    missing = False
-
-    for files in file_map.values():
-        for path in files.values():
-            settings = json.loads(open(path).read())
-            settings = apply_job_type(settings)
-            if str(settings.get("build_history", "false")).lower() != "true":
-                continue
-            full_table = settings.get("dst_table_name")
-            history_schema = settings.get("history_schema")
-            if not full_table or not history_schema:
-                continue
-            catalog, _, _ = full_table.split(".", 2)
-            key = (catalog, history_schema)
-            if key in checked:
-                continue
-            checked.add(key)
-            if not schema_exists(catalog, history_schema, spark):
-                print(f"\tWARNING: History schema does not exist: {catalog}.{history_schema}")
-                create_schema_if_not_exists(catalog, history_schema, spark)
-                missing = True
-
-    if not missing:
-        print("Sanity check: History schema check passed.")
+    if missing_history:
+        print("Sanity check: Initialize schemas and volumes check completed with warnings.")
     else:
-        print("Sanity check: History schema check completed with warnings.")
+        print("Sanity check: Initialize schemas and volumes check passed.")
+
+
