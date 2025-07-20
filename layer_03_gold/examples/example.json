@@ -1,0 +1,7 @@
+{
+    "simple_settings": "true",
+    "job_type": "gold_standard_batch",
+    "src_table_name": "edsm.silver.example",
+    "dst_table_name": "edsm.gold.example",
+    "business_key": ["id"]
+}
