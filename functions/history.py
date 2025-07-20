@@ -122,7 +122,4 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
         """
         )
 
-def transaction_history(full_table_name, history_schema, spark):
-    """Backward compatible wrapper for ``build_and_merge_file_history``."""
 
-    build_and_merge_file_history(full_table_name, history_schema, spark)
