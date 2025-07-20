@@ -7,6 +7,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 S3_ROOT_LANDING = "s3://edsm/landing/"
 S3_ROOT_UTILITY = "s3://edsm/utility/"
 
+# Default owner for tables, schemas and volumes created by the utilities
+OBJECT_OWNER = "bryanlharris@me.com"
+
 # Map short ``job_type`` names to ingest function combinations.
 JOB_TYPE_MAP = {
     "bronze_standard_streaming": {
