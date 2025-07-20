@@ -204,6 +204,61 @@ def get_function(path):
     return getattr(module, func_name)
 
 
+def _extract_owner(df):
+    """Return the owner value from a DESCRIBE EXTENDED dataframe."""
+
+    try:
+        rows = df.collect()
+    except Exception:
+        return None
+
+    for row in rows:
+        for attr in [
+            "database_description_item",
+            "col_name",
+            "info_name",
+        ]:
+            key = getattr(row, attr, None)
+            if key and str(key).lower() == "owner":
+                for val_attr in [
+                    "database_description_value",
+                    "data_type",
+                    "info_value",
+                ]:
+                    value = getattr(row, val_attr, None)
+                    if value is not None:
+                        return str(value)
+        if len(row) >= 2 and str(row[0]).lower() == "owner":
+            return str(row[1])
+
+    return None
+
+
+def _ensure_admin_owner(obj_type: str, name: str, spark) -> None:
+    """Ensure the Databricks object is owned by the admins group."""
+
+    describe_map = {
+        "table": f"DESCRIBE TABLE EXTENDED {name}",
+        "schema": f"DESCRIBE SCHEMA EXTENDED {name}",
+        "volume": f"DESCRIBE VOLUME EXTENDED {name}",
+    }
+    alter_map = {
+        "table": f"ALTER TABLE {name} OWNER TO `admins`",
+        "schema": f"ALTER SCHEMA {name} OWNER TO `admins`",
+        "volume": f"ALTER VOLUME {name} OWNER TO `admins`",
+    }
+
+    try:
+        df = spark.sql(describe_map[obj_type])
+    except Exception:
+        return
+
+    owner = _extract_owner(df)
+    if owner and owner != "admins":
+        spark.sql(alter_map[obj_type])
+        print(f"\tINFO: Owner changed to admins for {obj_type} {name}.")
+
+
 def create_table_if_not_exists(df, dst_table_name, spark):
     """Create a table from a dataframe if it doesn't exist.
 
@@ -222,9 +277,13 @@ def create_table_if_not_exists(df, dst_table_name, spark):
             .saveAsTable(dst_table_name)
         )
         print(f"\tINFO: Table did not exist and was created: {dst_table_name}.")
-        return True
+        created = True
+    else:
+        created = False
 
-    return False
+    _ensure_admin_owner("table", dst_table_name, spark)
+
+    return created
 
 
 def create_schema_if_not_exists(catalog, schema, spark):
@@ -234,6 +293,7 @@ def create_schema_if_not_exists(catalog, schema, spark):
         spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
         print(f"\tINFO: Schema did not exist and was created: {catalog}.{schema}.")
 
+    _ensure_admin_owner("schema", f"{catalog}.{schema}", spark)
 
 def schema_exists(catalog, schema, spark):
     """Return True if the schema exists in the given catalog"""
@@ -267,6 +327,7 @@ def create_volume_if_not_exists(catalog, schema, volume, spark):
             f"\tINFO: Volume did not exist and was created: /Volumes/{catalog}/{schema}/{volume}."
         )
 
+    _ensure_admin_owner("volume", f"{catalog}.{schema}.{volume}", spark)
 
 
 def truncate_table_if_exists(table_name, spark):
