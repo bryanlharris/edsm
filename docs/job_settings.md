@@ -18,5 +18,5 @@ Finally the notebook runs several sanity checks:
 1. `validate_settings` verifies the settings are well formed and warns if the
    S3 root paths are missing a trailing `/`.
 2. `initialize_schemas_and_volumes` ensures catalogs and volumes exist.
-3. `warn_missing_history_schema` prints a warning when the configured history schema is missing.
+3. `warn_missing_history_schema` prints a warning and creates the history schema when it is missing.
 4. `initialize_empty_tables` creates any empty destination tables.

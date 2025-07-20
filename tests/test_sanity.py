@@ -78,8 +78,10 @@ def test_warn_missing_history_schema(capsys, monkeypatch):
         return builtins.open(p, *a, **k)
 
     monkeypatch.setattr(sanity, 'schema_exists', lambda catalog, schema, spark: False)
+    monkeypatch.setattr(sanity, 'create_schema_if_not_exists', lambda c, s, sp: print(f"\tINFO: Schema did not exist and was created: {c}.{s}."))
     monkeypatch.setattr(builtins, 'open', fake_open)
 
     sanity.warn_missing_history_schema(None)
     out = capsys.readouterr().out
     assert 'WARNING' in out
+    assert 'Schema did not exist and was created' in out
