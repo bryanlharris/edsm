@@ -28,6 +28,12 @@ Create catalogs, schemas and external volumes referenced by the settings.
 History schemas are added when enabled. An error is raised if multiple
 catalogs or schemas are discovered.
 
+## `warn_missing_history_schema`
+
+Check whether the history schema referenced by the settings exists. If the
+schema is missing, a warning message is printed so it can be created prior to
+ingestion.
+
 ## `validate_s3_roots`
 
 Ensure ``S3_ROOT_LANDING`` and ``S3_ROOT_UTILITY`` include a trailing
