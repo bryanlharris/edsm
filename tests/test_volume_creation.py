@@ -105,7 +105,7 @@ def test_create_volume_message_depends_on_existence(capsys):
     utility.create_volume_if_not_exists('cat', 'sch', 'landing', spark)
     out = capsys.readouterr().out
     assert "Volume did not exist and was created" in out
-    assert "Owner changed to admins" in out
+    assert f"Owner changed to {config.OBJECT_OWNER}" in out
 
     # Mark volume as existing and call again - no message expected
     spark.volumes.add(('cat', 'sch', 'landing'))
@@ -120,7 +120,7 @@ def test_create_schema_message_depends_on_existence(capsys):
     utility.create_schema_if_not_exists('cat', 'sch', spark)
     out = capsys.readouterr().out
     assert "Schema did not exist and was created" in out
-    assert "Owner changed to admins" in out
+    assert f"Owner changed to {config.OBJECT_OWNER}" in out
 
     # Already present
     spark.schemas.add(('cat', 'sch'))
@@ -141,9 +141,9 @@ def test_volume_root_without_trailing_slash(monkeypatch):
 def test_owner_alter_queries_executed():
     spark = DummySpark()
     utility.create_schema_if_not_exists('cat', 'sch', spark)
-    assert any(q.startswith('ALTER SCHEMA cat.sch OWNER TO `admins`') for q in spark.queries)
+    assert any(q.startswith(f'ALTER SCHEMA cat.sch OWNER TO `{config.OBJECT_OWNER}`') for q in spark.queries)
 
     spark = DummySpark()
     utility.create_volume_if_not_exists('cat', 'sch', 'utility', spark)
-    assert any(q.startswith('ALTER VOLUME cat.sch.utility OWNER TO `admins`') for q in spark.queries)
+    assert any(q.startswith(f'ALTER VOLUME cat.sch.utility OWNER TO `{config.OBJECT_OWNER}`') for q in spark.queries)
 

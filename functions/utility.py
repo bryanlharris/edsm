@@ -8,7 +8,7 @@ from pathlib import Path
 from pyspark.sql.types import StructType
 from collections import defaultdict, deque
 
-from .config import JOB_TYPE_MAP, S3_ROOT_LANDING, S3_ROOT_UTILITY
+from .config import JOB_TYPE_MAP, S3_ROOT_LANDING, S3_ROOT_UTILITY, OBJECT_OWNER
 
 
 def print_settings(job_settings, settings, color, table):
@@ -235,7 +235,7 @@ def _extract_owner(df):
 
 
 def _ensure_admin_owner(obj_type: str, name: str, spark) -> None:
-    """Ensure the Databricks object is owned by the admins group."""
+    """Ensure the Databricks object is owned by ``config.OBJECT_OWNER``."""
 
     describe_map = {
         "table": f"DESCRIBE TABLE EXTENDED {name}",
@@ -243,9 +243,9 @@ def _ensure_admin_owner(obj_type: str, name: str, spark) -> None:
         "volume": f"DESCRIBE VOLUME EXTENDED {name}",
     }
     alter_map = {
-        "table": f"ALTER TABLE {name} OWNER TO `admins`",
-        "schema": f"ALTER SCHEMA {name} OWNER TO `admins`",
-        "volume": f"ALTER VOLUME {name} OWNER TO `admins`",
+        "table": f"ALTER TABLE {name} OWNER TO `{OBJECT_OWNER}`",
+        "schema": f"ALTER SCHEMA {name} OWNER TO `{OBJECT_OWNER}`",
+        "volume": f"ALTER VOLUME {name} OWNER TO `{OBJECT_OWNER}`",
     }
 
     try:
@@ -254,9 +254,12 @@ def _ensure_admin_owner(obj_type: str, name: str, spark) -> None:
         return
 
     owner = _extract_owner(df)
-    if owner and owner != "admins":
-        spark.sql(alter_map[obj_type])
-        print(f"\tINFO: Owner changed to admins for {obj_type} {name}.")
+    if owner and owner != OBJECT_OWNER:
+        try:
+            spark.sql(alter_map[obj_type])
+            print(f"\tINFO: Owner changed to {OBJECT_OWNER} for {obj_type} {name}.")
+        except Exception:
+            print(f"\tWARNING: Failed to change owner for {obj_type} {name}.")
 
 
 def create_table_if_not_exists(df, dst_table_name, spark):
