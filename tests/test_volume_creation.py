@@ -29,6 +29,17 @@ class DummySpark:
                 return []
             return [("Owner", self._owner)]
 
+        def select(self, col):
+            assert col == "owner"
+            class _First:
+                def __init__(self, owner):
+                    self._owner = owner
+
+                def first(self):
+                    return {"owner": self._owner}
+
+            return _First(self._owner)
+
     def sql(self, query):
         self.queries.append(query)
 
@@ -64,8 +75,8 @@ class DummySpark:
             owner = self.schema_owners.get((catalog, schema), "user")
             return self._Describe(owner)
 
-        if query.startswith("DESCRIBE VOLUME EXTENDED"):
-            cat_schema_vol = query.split()[3]
+        if query.startswith("DESCRIBE VOLUME"):
+            cat_schema_vol = query.split()[2]
             catalog, schema, volume = cat_schema_vol.split(".")
             owner = self.volume_owners.get((catalog, schema, volume), "user")
             return self._Describe(owner)
