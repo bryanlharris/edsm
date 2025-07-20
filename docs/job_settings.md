@@ -15,6 +15,7 @@ Silver files are divided into parallel and sequential lists based on the presenc
 Each section of `job_settings` is stored in a Databricks task value so downstream notebooks can access the configuration.
 Finally the notebook runs several sanity checks:
 
-1. `validate_settings` verifies the settings are well formed.
+1. `validate_settings` verifies the settings are well formed and warns if the
+   S3 root paths are missing a trailing `/`.
 2. `initialize_schemas_and_volumes` ensures catalogs and volumes exist.
 3. `initialize_empty_tables` creates any empty destination tables.
