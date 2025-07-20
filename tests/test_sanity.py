@@ -66,22 +66,49 @@ def test_validate_settings_runs_s3_validation(capsys, monkeypatch):
     assert config.S3_ROOT_UTILITY.endswith('/')
 
 
-def test_warn_missing_history_schema(capsys, monkeypatch):
+def test_initialize_schemas_warns_for_missing_history_schema(capsys, monkeypatch):
     path = 'dummy.json'
     monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({'tbl': path}, {}, {}))
 
-    import builtins, io, json
+    import builtins, io, json, types
 
     def fake_open(p, *a, **k):
         if p == path:
             return io.StringIO(json.dumps({'dst_table_name': 'cat.sch.tbl', 'build_history': 'true', 'history_schema': 'hist'}))
         return builtins.open(p, *a, **k)
 
-    monkeypatch.setattr(sanity, 'schema_exists', lambda catalog, schema, spark: False)
-    monkeypatch.setattr(sanity, 'create_schema_if_not_exists', lambda c, s, sp: print(f"\tINFO: Schema did not exist and was created: {c}.{s}."))
     monkeypatch.setattr(builtins, 'open', fake_open)
+    monkeypatch.setattr(sanity, 'catalog_exists', lambda c, sp: True)
+    monkeypatch.setattr(sanity, 'schema_exists', lambda c, s, sp: False)
+    monkeypatch.setattr(sanity, 'create_schema_if_not_exists', lambda c, s, sp: print(f"\tINFO: Schema did not exist and was created: {c}.{s}."))
+    monkeypatch.setattr(sanity, 'create_volume_if_not_exists', lambda c, s, v, sp: None)
 
-    sanity.warn_missing_history_schema(None)
+    spark = types.SimpleNamespace(sql=lambda q: None)
+    sanity.initialize_schemas_and_volumes(spark)
     out = capsys.readouterr().out
-    assert 'WARNING' in out
-    assert 'Schema did not exist and was created' in out
+    assert 'WARNING: History schema does not exist: cat.hist' in out
+    assert 'Initialize schemas and volumes check completed with warnings.' in out
+
+
+def test_initialize_schemas_history_schema_exists(capsys, monkeypatch):
+    path = 'dummy.json'
+    monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({'tbl': path}, {}, {}))
+
+    import builtins, io, json, types
+
+    def fake_open(p, *a, **k):
+        if p == path:
+            return io.StringIO(json.dumps({'dst_table_name': 'cat.sch.tbl', 'build_history': 'true', 'history_schema': 'hist'}))
+        return builtins.open(p, *a, **k)
+
+    monkeypatch.setattr(builtins, 'open', fake_open)
+    monkeypatch.setattr(sanity, 'catalog_exists', lambda c, sp: True)
+    monkeypatch.setattr(sanity, 'schema_exists', lambda c, s, sp: True)
+    monkeypatch.setattr(sanity, 'create_schema_if_not_exists', lambda c, s, sp: None)
+    monkeypatch.setattr(sanity, 'create_volume_if_not_exists', lambda c, s, v, sp: None)
+
+    spark = types.SimpleNamespace(sql=lambda q: None)
+    sanity.initialize_schemas_and_volumes(spark)
+    out = capsys.readouterr().out
+    assert 'WARNING' not in out
+    assert 'Initialize schemas and volumes check passed.' in out

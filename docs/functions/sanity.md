@@ -25,15 +25,9 @@ is built layer by layer starting from an empty DataFrame and written with
 ## `initialize_schemas_and_volumes`
 
 Create catalogs, schemas and external volumes referenced by the settings.
-History schemas are added when enabled. An error is raised if multiple
+History schemas are added when enabled. When a history schema does not exist a
+warning is emitted before the schema is created. An error is raised if multiple
 catalogs or schemas are discovered.
-
-## `warn_missing_history_schema`
-
-Check whether the history schema referenced by the settings exists. If the
-schema is missing, a warning message is printed and the schema is created using
-`create_schema_if_not_exists`, producing the same INFO message as other schema
-creations.
 
 ## `validate_s3_roots`
 
