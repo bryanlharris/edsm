@@ -260,6 +260,12 @@ def _ensure_admin_owner(obj_type: str, name: str, spark) -> None:
             print(f"\tINFO: Owner changed to {OBJECT_OWNER} for {obj_type} {name}.")
         except Exception:
             print(f"\tWARNING: Failed to change owner for {obj_type} {name}.")
+    elif not owner:
+        try:
+            spark.sql(alter_map[obj_type])
+            print(f"\tINFO: Owner set to {OBJECT_OWNER} for {obj_type} {name}.")
+        except Exception:
+            print(f"\tWARNING: Failed to set owner for {obj_type} {name}.")
 
 
 def create_table_if_not_exists(df, dst_table_name, spark):
