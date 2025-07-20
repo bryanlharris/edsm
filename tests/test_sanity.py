@@ -64,3 +64,22 @@ def test_validate_settings_runs_s3_validation(capsys, monkeypatch):
     assert 'WARNING' in out
     assert config.S3_ROOT_LANDING.endswith('/')
     assert config.S3_ROOT_UTILITY.endswith('/')
+
+
+def test_warn_missing_history_schema(capsys, monkeypatch):
+    path = 'dummy.json'
+    monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({'tbl': path}, {}, {}))
+
+    import builtins, io, json
+
+    def fake_open(p, *a, **k):
+        if p == path:
+            return io.StringIO(json.dumps({'dst_table_name': 'cat.sch.tbl', 'build_history': 'true', 'history_schema': 'hist'}))
+        return builtins.open(p, *a, **k)
+
+    monkeypatch.setattr(sanity, 'schema_exists', lambda catalog, schema, spark: False)
+    monkeypatch.setattr(builtins, 'open', fake_open)
+
+    sanity.warn_missing_history_schema(None)
+    out = capsys.readouterr().out
+    assert 'WARNING' in out
