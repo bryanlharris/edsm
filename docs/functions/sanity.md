@@ -31,8 +31,9 @@ catalogs or schemas are discovered.
 ## `warn_missing_history_schema`
 
 Check whether the history schema referenced by the settings exists. If the
-schema is missing, a warning message is printed so it can be created prior to
-ingestion.
+schema is missing, a warning message is printed and the schema is created using
+`create_schema_if_not_exists`, producing the same INFO message as other schema
+creations.
 
 ## `validate_s3_roots`
 

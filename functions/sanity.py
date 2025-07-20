@@ -257,6 +257,7 @@ def warn_missing_history_schema(spark):
             checked.add(key)
             if not schema_exists(catalog, history_schema, spark):
                 print(f"\tWARNING: History schema does not exist: {catalog}.{history_schema}")
+                create_schema_if_not_exists(catalog, history_schema, spark)
                 missing = True
 
     if not missing:
