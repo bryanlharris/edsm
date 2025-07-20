@@ -205,7 +205,15 @@ def get_function(path):
 
 
 def _extract_owner(df):
-    """Return the owner value from a DESCRIBE EXTENDED dataframe."""
+    """Return the owner value from describe output DataFrame."""
+
+    try:
+        if "owner" in df.columns:
+            row = df.select("owner").first()
+            if row is not None and row["owner"] is not None:
+                return str(row["owner"])
+    except Exception:
+        pass
 
     try:
         rows = df.collect()
@@ -240,7 +248,7 @@ def _ensure_admin_owner(obj_type: str, name: str, spark) -> None:
     describe_map = {
         "table": f"DESCRIBE TABLE EXTENDED {name}",
         "schema": f"DESCRIBE SCHEMA EXTENDED {name}",
-        "volume": f"DESCRIBE VOLUME EXTENDED {name}",
+        "volume": f"DESCRIBE VOLUME {name}",
     }
     alter_map = {
         "table": f"ALTER TABLE {name} OWNER TO `{OBJECT_OWNER}`",
@@ -253,7 +261,13 @@ def _ensure_admin_owner(obj_type: str, name: str, spark) -> None:
     except Exception:
         return
 
-    owner = _extract_owner(df)
+    if obj_type == "volume":
+        try:
+            owner = df.select("owner").first()["owner"]
+        except Exception:
+            owner = None
+    else:
+        owner = _extract_owner(df)
     if owner and owner != OBJECT_OWNER:
         try:
             spark.sql(alter_map[obj_type])
