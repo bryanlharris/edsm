@@ -25,6 +25,8 @@ class DummySpark:
             self._owner = owner
 
         def collect(self):
+            if self._owner is None:
+                return []
             return [("Owner", self._owner)]
 
     def sql(self, query):
@@ -146,4 +148,13 @@ def test_owner_alter_queries_executed():
     spark = DummySpark()
     utility.create_volume_if_not_exists('cat', 'sch', 'utility', spark)
     assert any(q.startswith(f'ALTER VOLUME cat.sch.utility OWNER TO `{config.OBJECT_OWNER}`') for q in spark.queries)
+
+
+def test_owner_set_message_when_missing(capsys):
+    spark = DummySpark()
+    spark.schemas.add(('cat', 'sch'))
+    spark.schema_owners[('cat', 'sch')] = None
+    utility.create_schema_if_not_exists('cat', 'sch', spark)
+    out = capsys.readouterr().out
+    assert f"Owner set to {config.OBJECT_OWNER}" in out
 
