@@ -34,3 +34,6 @@ The provided job types are:
 
 ``S3_ROOT_LANDING`` and ``S3_ROOT_UTILITY`` define the base S3 locations
 for external landing and utility volumes.
+Both values should include a trailing ``/``.  When omitted, it will be
+appended by ``sanity.validate_s3_roots`` but updating ``config.py`` is
+recommended.

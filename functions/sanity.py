@@ -9,7 +9,8 @@ from functions.utility import (
     create_volume_if_not_exists,
     catalog_exists,
 )
-from functions.config import PROJECT_ROOT
+from functions import config
+PROJECT_ROOT = config.PROJECT_ROOT
 
 
 def _discover_settings_files():
@@ -29,6 +30,28 @@ def _discover_settings_files():
     }
 
     return bronze_files, silver_files, gold_files
+
+
+def validate_s3_roots():
+    """Ensure S3 root constants end with a trailing slash."""
+
+    updated = False
+
+    if not config.S3_ROOT_LANDING.endswith("/"):
+        config.S3_ROOT_LANDING += "/"
+        print(
+            "\tWARNING: Added trailing '/' to S3_ROOT_LANDING; update config.py to include it."
+        )
+        updated = True
+
+    if not config.S3_ROOT_UTILITY.endswith("/"):
+        config.S3_ROOT_UTILITY += "/"
+        print(
+            "\tWARNING: Added trailing '/' to S3_ROOT_UTILITY; update config.py to include it."
+        )
+        updated = True
+
+    return updated
 
 def validate_settings(dbutils):
     """Ensure all settings files contain required keys before processing."""
@@ -84,6 +107,9 @@ def validate_settings(dbutils):
         raise RuntimeError("Sanity check failed: "+", ".join(errs))
     else:
         print("Sanity check: Validate settings check passed.")
+
+    # Validate S3 root configuration after settings are confirmed
+    validate_s3_roots()
 
 
 
