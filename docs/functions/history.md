@@ -18,7 +18,4 @@ This prevents duplicates if the Delta table version is reset (for example after
 cloning). Column types are preserved so struct and map fields remain intact.
 Versions that cannot be read because a referenced file is missing are skipped.
 
-## `transaction_history`
-
-Alias for `build_and_merge_file_history` to preserve backwards compatibility.
 
