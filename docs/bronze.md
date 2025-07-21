@@ -26,12 +26,11 @@ information are stored under `utility/<table>` while input files are loaded from
 `bronze_standard_transform` adds an `ingest_time` column and copies ingestion
 metadata from `_metadata` into `source_metadata`.  If
 `add_derived_ingest_time` is enabled a `derived_ingest_time` field is extracted
-from the file path using `derived_ingest_time_regex`.  The transform also ensures
-that a `_rescued_data` column exists so malformed records can be captured.
+from the file path using `derived_ingest_time_regex`.
 
-Bad records detected by Auto Loader are written to the path specified by
-`badRecordsPath`.  After each run the job attempts to create a table named
-`<dst_table_name>_bad_records` from those files for inspection.
+When Auto Loader is configured with a `badRecordsPath`, those files can be
+converted into a `<dst_table_name>_bad_records` table using
+`create_bad_records_table`.
 
 ## History tables
 

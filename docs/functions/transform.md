@@ -3,7 +3,7 @@
 ## Main transforms
 
 ### `bronze_standard_transform`
-Apply default bronze logic such as cleaning column names, attaching file metadata and adding an `ingest_time` column. A `_rescued_data` field is created when it is missing.
+Apply default bronze logic such as cleaning column names, attaching file metadata and adding an `ingest_time` column.
 
 Parameters
 - **df**: input DataFrame
@@ -80,12 +80,6 @@ Attach a `source_metadata` struct column derived from `_metadata` with file path
 Parameters
 - **df**: input DataFrame
 - **settings**: may disable metadata capture with `use_metadata`
-
-### `add_rescued_data`
-Ensure a `_rescued_data` column exists so malformed records can be stored.
-
-Parameters
-- **df**: input DataFrame
 
 ### `add_row_hash_mod`
 Add a numeric modulus of a row hash for deterministic sampling.

@@ -107,7 +107,6 @@ def apply_job_type(settings):
                     "inferSchema": "false",
                     "cloudFiles.schemaLocation": f"{base_volume}/_schema/",
                     "badRecordsPath": f"{base_volume}/_badRecords/",
-                    "cloudFiles.rescuedDataColumn": "_rescued_data",
                 },
                 "writeStreamOptions": {
                     "mergeSchema": "false",

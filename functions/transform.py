@@ -53,11 +53,6 @@ def bronze_standard_transform(df, settings, spark):
         .transform(add_source_metadata, settings)
     )
 
-    file_schema = settings.get("file_schema", [])
-    rescue_in_schema = any(
-        isinstance(f, dict) and f.get("name") == "_rescued_data" for f in file_schema
-    )
-
     df = df.withColumn("ingest_time", current_timestamp())
 
     if add_derived:
@@ -72,9 +67,6 @@ def bronze_standard_transform(df, settings, spark):
                 "yyyyMMdd HH:mm:ss",
             ),
         )
-
-    if not rescue_in_schema:
-        df = df.transform(add_rescued_data)
 
     return df
 
@@ -134,17 +126,6 @@ def add_source_metadata(df, settings):
         return df.withColumn("source_metadata", expr("_metadata"))
     else:
         return df.withColumn("source_metadata", lit(None).cast(metadata_type))
-
-
-def add_rescued_data(df):
-    """Ensure a ``_rescued_data`` column exists in the DataFrame."""
-
-    rescued_data_type = StringType()
-
-    if "_rescued_data" in df.columns:
-        return df
-    else:
-        return df.withColumn("_rescued_data", lit(None).cast(rescued_data_type))
 
 
 def make_null_safe(col_expr, dtype):
