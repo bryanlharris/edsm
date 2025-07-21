@@ -331,6 +331,8 @@ def sample_table(df, settings, spark):
     if sample_type == "simple":
         id_col = settings["sample_id_col"]
         sample_size = parse_si(settings["sample_size"])
+        if not spark.catalog.tableExists(settings["src_table_name"]):
+            return df
 
         total = (
             spark.sql(
