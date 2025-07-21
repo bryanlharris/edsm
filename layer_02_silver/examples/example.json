@@ -6,15 +6,5 @@
     "business_key": [
         "id"
     ],
-    "dqx_checks": [
-        {
-            "name": "rescued_data_empty",
-            "check": {
-                "function": "is_null",
-                "arguments": {
-                    "column": "_rescued_data"
-                }
-            }
-        }
-    ]
+    "dqx_checks": []
 }

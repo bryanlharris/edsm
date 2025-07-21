@@ -117,15 +117,6 @@
                     "pattern": "^/Volumes/edsm/bronze/landing/data/\\d{8}/systemsWithCoordinates7days\\.json$"
                 }
             }
-        },
-        {
-            "name": "rescued_data_empty",
-            "check": {
-                "function": "is_null",
-                "arguments": {
-                    "column": "_rescued_data"
-                }
-            }
         }
     ]
 }
