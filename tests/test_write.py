@@ -20,7 +20,7 @@ sys.modules['pyspark.sql.window'] = window_mod
 # Stub out dependent functions package modules
 utility_mod = types.ModuleType('functions.utility')
 utility_mod.create_table_if_not_exists = lambda df, table, spark: None
-utility_mod.get_function = lambda name: lambda *args, **kwargs: None
+utility_mod.get_function = lambda name: lambda *args, **kwargs: (lambda df, id: None)
 transform_mod = types.ModuleType('functions.transform')
 transform_mod.silver_scd2_transform = lambda df, settings, spark: df
 sys.modules['functions.utility'] = utility_mod
@@ -79,6 +79,53 @@ class DummySpark:
         self.queries.append(query)
         return None
 
+
+class DummyStreamingQuery:
+    def __init__(self):
+        self.terminated = False
+
+    def awaitTermination(self):
+        self.terminated = True
+
+
+class DummyWriteStream:
+    def __init__(self, df):
+        self.df = df
+        self.query = None
+
+    def format(self, fmt):
+        return self
+
+    def options(self, **kwargs):
+        return self
+
+    def outputMode(self, mode):
+        return self
+
+    def trigger(self, **kwargs):
+        return self
+
+    def table(self, name):
+        self.query = DummyStreamingQuery()
+        return self.query
+
+    def foreachBatch(self, func):
+        self.foreach_func = func
+        return self
+
+    def queryName(self, name):
+        return self
+
+    def start(self):
+        self.query = DummyStreamingQuery()
+        return self.query
+
+
+class DummyStreamingDF(DummyDF):
+    def __init__(self):
+        super().__init__()
+        self.writeStream = DummyWriteStream(self)
+
 class SimpleMergeTests(unittest.TestCase):
     def test_dedup_by_ingest_time(self):
         df = DummyDF()
@@ -106,6 +153,29 @@ class SimpleMergeTests(unittest.TestCase):
         self.assertIn('dropDuplicates', df.calls)
         self.assertIn('createOrReplaceTempView(updates)', df.calls)
         self.assertTrue(spark.queries)
+
+
+class StreamingWriteTests(unittest.TestCase):
+    def test_stream_write_table_awaits(self):
+        df = DummyStreamingDF()
+        spark = DummySpark()
+        settings = {
+            'dst_table_name': 'tbl',
+            'writeStreamOptions': {}
+        }
+        query = write.stream_write_table(df, settings, spark)
+        self.assertTrue(query.terminated)
+
+    def test_stream_upsert_table_awaits(self):
+        df = DummyStreamingDF()
+        spark = DummySpark()
+        settings = {
+            'dst_table_name': 'tbl',
+            'writeStreamOptions': {},
+            'upsert_function': 'foo'
+        }
+        query = write.stream_upsert_table(df, settings, spark)
+        self.assertTrue(query.terminated)
 
 if __name__ == '__main__':
     unittest.main()
