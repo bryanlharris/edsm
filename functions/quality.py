@@ -6,6 +6,7 @@ function is written so that importing this module does not require
 ``pyspark`` or ``databricks-labs-dqx``.  Dependencies are loaded only
 when the helper is executed.
 """
+
 from __future__ import annotations
 
 from typing import Tuple, Any, Optional
@@ -115,14 +116,15 @@ def count_records(
 
     if getattr(df, "isStreaming", False):
         if checkpoint_location is None:
-            raise ValueError("checkpoint_location must be provided for streaming DataFrames")
+            raise ValueError(
+                "checkpoint_location must be provided for streaming DataFrames"
+            )
         run_id = uuid.uuid4().hex
         name = f"_dqx_count_{run_id}"
         location = f"{checkpoint_location.rstrip('/')}/{run_id}/"
 
         (
-            df.writeStream
-            .format("memory")
+            df.writeStream.format("memory")
             .queryName(name)
             .option("checkpointLocation", location)
             .trigger(availableNow=True)
@@ -161,34 +163,35 @@ def create_dqx_bad_records_table(df: Any, settings: dict, spark: Any) -> Any:
         parent = os.path.dirname(base)
         checkpoint_location = f"{parent}/_dqx_checkpoints/"
 
-    n_bad = count_records(bad_df, spark, checkpoint_location=checkpoint_location)
-
-    if n_bad > 0:
-        if getattr(bad_df, "isStreaming", False):
-            if checkpoint_location is None:
-                raise ValueError(
-                    "checkpoint_location must be provided for streaming DataFrames"
-                )
-
-            run_id = uuid.uuid4().hex
-            location = f"{checkpoint_location.rstrip('/')}/{run_id}/"
-
-            (
-                bad_df.writeStream
-                .format("delta")
-                .option("checkpointLocation", location)
-                .trigger(availableNow=True)
-                .table(f"{dst_table_name}_dqx_bad_records")
-                .awaitTermination()
+    if getattr(bad_df, "isStreaming", False):
+        if checkpoint_location is None:
+            raise ValueError(
+                "checkpoint_location must be provided for streaming DataFrames"
             )
-            shutil.rmtree(location, ignore_errors=True)
-        else:
+
+        run_id = uuid.uuid4().hex
+        location = f"{checkpoint_location.rstrip('/')}/{run_id}/"
+
+        (
+            bad_df.writeStream.format("delta")
+            .option("checkpointLocation", location)
+            .trigger(availableNow=True)
+            .table(f"{dst_table_name}_dqx_bad_records")
+            .awaitTermination()
+        )
+        shutil.rmtree(location, ignore_errors=True)
+
+        n_bad = spark.table(f"{dst_table_name}_dqx_bad_records").count()
+    else:
+        n_bad = bad_df.count()
+        if n_bad > 0:
             (
                 bad_df.write.mode("overwrite")
                 .format("delta")
                 .saveAsTable(f"{dst_table_name}_dqx_bad_records")
             )
-    else:
+
+    if n_bad == 0:
         spark.sql(f"DROP TABLE IF EXISTS {dst_table_name}_dqx_bad_records")
 
     if spark.catalog.tableExists(f"{dst_table_name}_dqx_bad_records"):
