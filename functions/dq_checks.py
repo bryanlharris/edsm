@@ -92,6 +92,21 @@ def pattern_match(column, pattern):
     return matches_regex_list(column, [pattern])
 
 
+def is_null(column):
+    """Return a column validating ``column`` is null."""
+
+    from pyspark.sql import functions as F
+
+    col_expr = F.col(column) if isinstance(column, str) else column
+    condition = col_expr.isNotNull()
+    alias = f"{str(column).replace('.', '_')}_is_null"
+    return (
+        F.when(condition, F.lit("Value is not null"))
+        .otherwise(F.lit(None))
+        .alias(alias)
+    )
+
+
 def is_nonzero(column):
     """Return a column validating ``column`` is not zero."""
 
