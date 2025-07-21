@@ -62,10 +62,12 @@ class DummyDF:
         return self
 
 class DummySpark:
-    def __init__(self, count=20):
+    def __init__(self, count=20, exists=True):
         self.read = types.SimpleNamespace(table=lambda name: DummyDF())
         self.count = count
         self.query = None
+        self.catalog = types.SimpleNamespace(tableExists=lambda name: exists)
+
     def sql(self, query):
         self.query = query
         return types.SimpleNamespace(collect=lambda: [[self.count]])
@@ -88,6 +90,22 @@ class SimpleSampleTests(unittest.TestCase):
             spark.query,
             'SELECT approx_count_distinct(id) AS total FROM tbl'
         )
+
+    def test_returns_input_when_table_missing(self):
+        captured.clear()
+        spark = DummySpark(exists=False)
+        settings = {
+            'sample_type': 'simple',
+            'sample_id_col': 'id',
+            'sample_size': '4',
+            'src_table_name': 'tbl'
+        }
+        df = DummyDF()
+        result = transform.sample_table(df, settings, spark=spark)
+        self.assertIs(result, df)
+        self.assertEqual(result.wheres, 0)
+        self.assertIsNone(spark.query)
+        self.assertNotIn('modulus', captured)
 
 if __name__ == '__main__':
     unittest.main()

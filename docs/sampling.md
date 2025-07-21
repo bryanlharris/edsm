@@ -18,7 +18,9 @@ If omitted, random sampling is used.
   dictionary must include ``sample_id_col`` naming the column to hash and
   ``sample_size`` specifying how many rows to keep. The ``sample_size`` value
   supports SI notation such as ``1k`` or ``5m``. Only rows where the ID is not
-  null are considered. ``sample_fraction`` is ignored for this mode.
+  null are considered. ``sample_fraction`` is ignored for this mode. When the
+  table named by ``src_table_name`` does not exist ``sample_table`` returns the
+  input unchanged so ``initialize_empty_tables`` can run without errors.
 
 ## Sample fraction
 
