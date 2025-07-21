@@ -60,7 +60,7 @@ class DummyDF:
         return self
 
 class BronzeTransformTests(unittest.TestCase):
-    def test_skip_add_rescued_when_schema_contains_column(self):
+    def test_transform_does_not_call_add_rescued_data(self):
         df = DummyDF(['foo'])
         settings = {
             'file_schema': [
@@ -70,10 +70,9 @@ class BronzeTransformTests(unittest.TestCase):
             'use_metadata': 'true'
         }
         with mock.patch.object(transform, 'clean_column_names', new=lambda df_in: df_in), \
-             mock.patch.object(transform, 'add_source_metadata', new=lambda df_in, settings: df_in), \
-             mock.patch.object(transform, 'add_rescued_data', new=mock.Mock(side_effect=lambda df_in: df_in)) as add_mock:
+             mock.patch.object(transform, 'add_source_metadata', new=lambda df_in, settings: df_in):
             transform.bronze_standard_transform(df, settings, spark=None)
-            add_mock.assert_not_called()
+            self.assertNotIn('add_rescued_data', df.calls)
 
 
 if __name__ == '__main__':

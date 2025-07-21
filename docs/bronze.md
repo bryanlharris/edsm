@@ -26,8 +26,7 @@ information are stored under `utility/<table>` while input files are loaded from
 `bronze_standard_transform` adds an `ingest_time` column and copies ingestion
 metadata from `_metadata` into `source_metadata`.  If
 `add_derived_ingest_time` is enabled a `derived_ingest_time` field is extracted
-from the file path using `derived_ingest_time_regex`.  The transform also ensures
-that a `_rescued_data` column exists.
+from the file path using `derived_ingest_time_regex`.
 
 When Auto Loader is configured with a `badRecordsPath`, those files can be
 converted into a `<dst_table_name>_bad_records` table using
