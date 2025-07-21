@@ -18,7 +18,7 @@ def stream_write_table(df, settings, spark):
     writeStreamOptions      = settings.get("writeStreamOptions")
 
     # Write
-    (
+    query = (
         df.writeStream
         .format("delta")
         .options(**writeStreamOptions)
@@ -27,12 +27,15 @@ def stream_write_table(df, settings, spark):
         .table(dst_table_name)
     )
 
+    query.awaitTermination()
+    return query
+
 
 def stream_upsert_table(df, settings, spark):
     """Apply an upsert function to each streaming micro-batch."""
 
     upsert_func = get_function(settings.get("upsert_function"))
-    return (
+    query = (
         df.writeStream
         .queryName(settings.get("dst_table_name"))
         .options(**settings.get("writeStreamOptions"))
@@ -41,6 +44,9 @@ def stream_upsert_table(df, settings, spark):
         .outputMode("update")
         .start()
     )
+
+    query.awaitTermination()
+    return query
 
 
 def _simple_merge(df, settings, spark):

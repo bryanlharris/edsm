@@ -10,13 +10,15 @@ Overwrite the destination table with the provided DataFrame.
 ## `stream_write_table`
 
 Write a streaming DataFrame directly to a Delta table. Streaming options
-are read from `writeStreamOptions` in the settings.
+are read from `writeStreamOptions` in the settings. The function returns
+the ``StreamingQuery`` and blocks until the stream completes.
 
 ## `stream_upsert_table`
 
 Apply an upsert function to each micro-batch of a streaming query. The
 upsert function name is supplied in the settings and loaded with
-`get_function`.
+`get_function`. The returned ``StreamingQuery`` is awaited so the
+function blocks until streaming finishes.
 
 ## `_simple_merge`
 
