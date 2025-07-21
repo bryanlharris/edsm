@@ -28,3 +28,7 @@ For documentation, see [here](https://github.com/bryanlharris/Documentation).
 * [docs/utilities/drop_history_tables.md](docs/utilities/drop_history_tables.md) - Notebook for removing history tables.
 * [docs/utilities/migrate_history_tables.md](docs/utilities/migrate_history_tables.md) - Convert and remove old history tables.
 * [docs/utilities/add_history_ingest_time.md](docs/utilities/add_history_ingest_time.md) - Notebook for adding `ingest_time` to history tables.
+
+Bronze streaming jobs no longer enable Auto Loader's rescued data column by
+default. Set `cloudFiles.rescuedDataColumn` in your job settings if bad record
+capture is desired.
