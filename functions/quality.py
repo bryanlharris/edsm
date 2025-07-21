@@ -19,6 +19,7 @@ from .dq_checks import (
     max_length,
     matches_regex_list,
     pattern_match,
+    is_null,
     is_nonzero,
     starts_with_prefixes,
 )
@@ -64,6 +65,7 @@ def apply_dqx_checks(df: Any, settings: dict, spark: Any) -> Tuple[Any, Any]:
         "min_max": min_max,
         "is_in": is_in,
         "is_not_null_or_empty": is_not_null_or_empty,
+        "is_null": is_null,
         "max_length": max_length,
         "matches_regex_list": matches_regex_list,
         "pattern_match": pattern_match,

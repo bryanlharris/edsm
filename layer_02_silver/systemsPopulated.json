@@ -22,5 +22,16 @@
     "data_type_map": {
         "date": "timestamp"
     },
-    "ingest_time_column": "derived_ingest_time"
+    "ingest_time_column": "derived_ingest_time",
+    "dqx_checks": [
+        {
+            "name": "rescued_data_empty",
+            "check": {
+                "function": "is_null",
+                "arguments": {
+                    "column": "_rescued_data"
+                }
+            }
+        }
+    ]
 }

@@ -22,7 +22,9 @@
             "name": "id_not_null",
             "check": {
                 "function": "is_not_null",
-                "arguments": {"column": "id"}
+                "arguments": {
+                    "column": "id"
+                }
             }
         },
         {
@@ -136,6 +138,15 @@
                         "Investment",
                         "Election"
                     ]
+                }
+            }
+        },
+        {
+            "name": "rescued_data_empty",
+            "check": {
+                "function": "is_null",
+                "arguments": {
+                    "column": "_rescued_data"
                 }
             }
         }

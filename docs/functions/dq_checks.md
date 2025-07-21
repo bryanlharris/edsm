@@ -33,6 +33,10 @@ Wrapper around `matches_regex_list` for a single pattern.
 
 Return a column that fails when the value is equal to zero.
 
+## `is_null`
+
+Return a column that fails when the value is not null.
+
 ## `starts_with_prefixes`
 
 Return a column that fails when the value does not start with any of the provided prefixes.

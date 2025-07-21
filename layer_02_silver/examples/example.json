@@ -3,5 +3,18 @@
     "job_type": "silver_standard_batch",
     "src_table_name": "edsm.bronze.example",
     "dst_table_name": "edsm.silver.example",
-    "business_key": ["id"]
+    "business_key": [
+        "id"
+    ],
+    "dqx_checks": [
+        {
+            "name": "rescued_data_empty",
+            "check": {
+                "function": "is_null",
+                "arguments": {
+                    "column": "_rescued_data"
+                }
+            }
+        }
+    ]
 }
