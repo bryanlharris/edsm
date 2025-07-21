@@ -12,4 +12,5 @@ During execution the notebook performs the following steps:
 - Prints the current job and table settings with `print_settings`.
 - Invokes the pipeline function or the individual read/transform/write functions.
 - Creates a DQX bad records table when applicable.
-- Builds a bad records table for bronze jobs if bad record files exist.
+- Builds a bad records table for bronze jobs when Auto Loader outputs
+  bad record files.
