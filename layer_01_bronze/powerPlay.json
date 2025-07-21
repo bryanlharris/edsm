@@ -93,12 +93,6 @@
                 "name": "state",
                 "nullable": true,
                 "type": "string"
-            },
-            {
-                "metadata": {},
-                "name": "_rescued_data",
-                "nullable": true,
-                "type": "string"
             }
         ],
         "type": "struct"
