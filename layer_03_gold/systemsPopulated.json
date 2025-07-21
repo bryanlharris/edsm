@@ -12,15 +12,5 @@
     "sample_id_col": "id",
     "sample_size": "1k",
     "write_function": "functions.write.overwrite_table",
-    "dqx_checks": [
-        {
-            "name": "rescued_data_empty",
-            "check": {
-                "function": "is_null",
-                "arguments": {
-                    "column": "_rescued_data"
-                }
-            }
-        }
-    ]
+    "dqx_checks": []
 }

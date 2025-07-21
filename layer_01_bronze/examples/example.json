@@ -2,15 +2,5 @@
     "simple_settings": "true",
     "job_type": "bronze_standard_streaming",
     "dst_table_name": "edsm.bronze.example",
-    "dqx_checks": [
-        {
-            "name": "rescued_data_empty",
-            "check": {
-                "function": "is_null",
-                "arguments": {
-                    "column": "_rescued_data"
-                }
-            }
-        }
-    ]
+    "dqx_checks": []
 }

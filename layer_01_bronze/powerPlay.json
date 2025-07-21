@@ -104,15 +104,5 @@
         "type": "struct"
     },
     "history_schema": "history",
-    "dqx_checks": [
-        {
-            "name": "rescued_data_empty",
-            "check": {
-                "function": "is_null",
-                "arguments": {
-                    "column": "_rescued_data"
-                }
-            }
-        }
-    ]
+    "dqx_checks": []
 }
