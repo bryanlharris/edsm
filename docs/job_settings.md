@@ -12,6 +12,11 @@ Silver files are divided into parallel and sequential lists based on the presenc
 - Tables **without** `requires` populate `silver_parallel`.
 - Tables **with** `requires` populate `silver_sequential` after sorting by dependency via `functions.utility.sort_by_dependency`.
 
+Files in `layer_*_silver_samples` configure sampling jobs. Each file is loaded
+like the bronze and gold layers and added to `job_settings['silver_samples']`.
+`job-definition.yaml` should contain a `silver_samples_loop` that iterates over
+this list.
+
 Each section of `job_settings` is stored in a Databricks task value so downstream notebooks can access the configuration.
 Finally the notebook runs several sanity checks:
 
