@@ -8,6 +8,29 @@ import unittest.mock
 # Insert repo root into path
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
+# Stub minimal pyspark modules and utility helpers required by quality
+pyspark = types.ModuleType("pyspark")
+sql = types.ModuleType("pyspark.sql")
+types_mod = types.ModuleType("pyspark.sql.types")
+pyspark.sql = sql
+sql.types = types_mod
+types_mod.StructType = type("StructType", (), {})
+sys.modules["pyspark"] = pyspark
+sys.modules["pyspark.sql"] = sql
+sys.modules["pyspark.sql.types"] = types_mod
+
+# Provide a stub functions.utility module so quality can import it
+utility_mod = types.ModuleType("functions.utility")
+
+def dummy_create_table_if_not_exists(df, table, spark):
+    spark.createDataFrame([], df.schema)
+    spark.tables.setdefault(table, [])
+    return True
+
+utility_mod.create_table_if_not_exists = dummy_create_table_if_not_exists
+prev_util = sys.modules.get("functions.utility")
+sys.modules["functions.utility"] = utility_mod
+
 # Create a minimal ``functions`` package to avoid executing the real package
 # (which requires pyspark) when ``quality`` performs relative imports.
 pkg_path = pathlib.Path(__file__).resolve().parents[1] / "functions"
@@ -20,6 +43,10 @@ quality_path = pathlib.Path(__file__).resolve().parents[1] / "functions" / "qual
 spec = importlib.util.spec_from_file_location("functions.quality", quality_path)
 quality = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(quality)
+if prev_util is not None:
+    sys.modules["functions.utility"] = prev_util
+else:
+    del sys.modules["functions.utility"]
 
 
 class DummyDF:
@@ -232,6 +259,8 @@ class QualityTests(unittest.TestCase):
                 "/tmp/base/_dqx_checkpoints/abcd/",
             )
             self.assertEqual(spark.tables.get("foo_dqx_bad_records"), [1])
+            self.assertEqual(spark.created[0], ([], "schema"))
+            self.assertEqual(mock_rm.call_count, 2)
             mock_rm.assert_called_with(
                 "/tmp/base/_dqx_checkpoints/abcd/", ignore_errors=True
             )
