@@ -129,7 +129,6 @@ def count_records(
             .option("checkpointLocation", location)
             .trigger(availableNow=True)
             .start()
-            .awaitTermination()
         )
         count = spark.sql(f"SELECT COUNT(*) FROM {name}").collect()[0][0]
         spark.catalog.dropTempView(name)
@@ -177,7 +176,6 @@ def create_dqx_bad_records_table(df: Any, settings: dict, spark: Any) -> Any:
             .option("checkpointLocation", location)
             .trigger(availableNow=True)
             .table(f"{dst_table_name}_dqx_bad_records")
-            .awaitTermination()
         )
         shutil.rmtree(location, ignore_errors=True)
 
