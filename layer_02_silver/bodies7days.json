@@ -3,9 +3,7 @@
     "job_type": "silver_scd2_streaming",
     "src_table_name": "edsm.bronze.bodies7days",
     "dst_table_name": "edsm.silver.bodies7days",
-    "readStreamOptions": {
-        "startingVersion": "latest"
-    },
+    "readStreamOptions": {},
     "business_key": [
         "id"
     ],
