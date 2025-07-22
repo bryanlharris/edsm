@@ -9,7 +9,7 @@ when the helper is executed.
 
 from __future__ import annotations
 
-from typing import Tuple, Any, Optional
+from typing import Tuple, Any
 import uuid
 import os
 import shutil
@@ -98,45 +98,6 @@ def apply_dqx_checks(df: Any, settings: dict, spark: Any) -> Tuple[Any, Any]:
     return good_df, bad_df
 
 
-def count_records(
-    df: Any, spark: Any, *, checkpoint_location: Optional[str] | None = None
-) -> int:
-    """Return the number of rows in ``df`` supporting streaming inputs.
-
-    Parameters
-    ----------
-    df : DataFrame
-        DataFrame to count. May be streaming or batch.
-    spark : SparkSession
-    checkpoint_location : str, optional
-        Path to the ``_dqx_checkpoints`` folder used when counting records
-        from a streaming DataFrame.  ``count_records`` appends a unique
-        run ID to this directory and removes it when the operation
-        completes.  The argument is required for streaming DataFrames.
-    """
-
-    if getattr(df, "isStreaming", False):
-        if checkpoint_location is None:
-            raise ValueError(
-                "checkpoint_location must be provided for streaming DataFrames"
-            )
-        run_id = uuid.uuid4().hex
-        name = f"_dqx_count_{run_id}"
-        location = f"{checkpoint_location.rstrip('/')}/{run_id}/"
-
-        (
-            df.writeStream.format("memory")
-            .queryName(name)
-            .option("checkpointLocation", location)
-            .trigger(availableNow=True)
-            .start()
-        )
-        count = spark.sql(f"SELECT COUNT(*) FROM {name}").collect()[0][0]
-        spark.catalog.dropTempView(name)
-        shutil.rmtree(location, ignore_errors=True)
-        return int(count)
-
-    return int(df.count())
 
 
 def create_dqx_bad_records_table(df: Any, settings: dict, spark: Any) -> Any:
@@ -171,20 +132,25 @@ def create_dqx_bad_records_table(df: Any, settings: dict, spark: Any) -> Any:
                 "checkpoint_location must be provided for streaming DataFrames"
             )
 
-        n_bad = count_records(
-            bad_df, spark, checkpoint_location=checkpoint_location
+        run_id = uuid.uuid4().hex
+        location = f"{checkpoint_location.rstrip('/')}/{run_id}/"
+
+        empty_bad_df = spark.createDataFrame([], schema=bad_df.schema)
+        (
+            empty_bad_df.write
+            .format("delta")
+            .mode("overwrite")
+            .saveAsTable(dst_bad_table)
         )
-        if n_bad > 0:
-            run_id = uuid.uuid4().hex
-            location = f"{checkpoint_location.rstrip('/')}/{run_id}/"
-            create_table_if_not_exists(bad_df, dst_bad_table, spark)
-            (
-                bad_df.writeStream.format("delta")
-                .option("checkpointLocation", location)
-                .trigger(availableNow=True)
-                .table(dst_bad_table)
-            )
-            shutil.rmtree(location, ignore_errors=True)
+
+        (
+            bad_df.writeStream.format("delta")
+            .option("checkpointLocation", location)
+            .trigger(availableNow=True)
+            .table(dst_bad_table)
+        )
+        shutil.rmtree(location, ignore_errors=True)
+        n_bad = spark.table(dst_bad_table).count()
     else:
         n_bad = bad_df.count()
         if n_bad > 0:
