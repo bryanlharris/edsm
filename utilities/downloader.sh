@@ -22,7 +22,16 @@ download(){
                 filename=$(basename "$url" .gz)
                 wget -nv -O - "$url" \
                     | gunzip -c \
-                    | jq -c '.[]' \
+                    | tr -d '\000' \
+                    | sed \
+                        -e '1s/^\s*\[\s*//' \
+                        -e '$s/\s*\]\s*$//' \
+                        -e 's/}[[:space:]]*,[[:space:]]*{/}\n{/g' \
+                        -e 's/^\s*//' \
+                        -e 's/},\s*$/}/' \
+                        -e '/^\s*[\[\]]\s*$/d' \
+                        -e 's/[[:space:]]*$//' \
+                        -e '/^$/d' \
                     | tee "$root_save_dir/$filename" > "$tmp_save_dir/$filename"
             done
         )
