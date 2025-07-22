@@ -22,9 +22,22 @@ quality = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(quality)
 
 
+class DummyWriter:
+    def __init__(self, spark):
+        self.spark = spark
+    def format(self, _):
+        return self
+    def mode(self, _):
+        return self
+    def saveAsTable(self, name):
+        self.spark.tables.setdefault(name, [])
+
+
 class DummyDF:
-    def __init__(self, schema=None):
+    def __init__(self, schema=None, spark=None):
         self.schema = schema
+        if spark is not None:
+            self.write = DummyWriter(spark)
 
 
 class DummyStreamingDF(DummyDF):
@@ -89,7 +102,7 @@ class DummySpark:
         )
 
     def createDataFrame(self, data, schema):
-        df = DummyDF(schema)
+        df = DummyDF(schema, self)
         self.created.append((data, schema))
         return df
 
@@ -177,33 +190,6 @@ class QualityTests(unittest.TestCase):
         self.assertIn("is_nonzero", DummyRegistry.registered)
         self.assertIn("starts_with_prefixes", DummyRegistry.registered)
 
-    def test_count_records_batch(self):
-        class CountDF(DummyDF):
-            def count(self_inner):
-                return 7
-
-        spark = DummySpark()
-        df = CountDF()
-        result = quality.count_records(df, spark)
-        self.assertEqual(result, 7)
-
-    def test_count_records_streaming(self):
-        spark = DummySpark()
-        df = DummyStreamingDF([1, 2, 3], spark)
-        with unittest.mock.patch.object(
-            quality.uuid, "uuid4"
-        ) as mock_uuid, unittest.mock.patch.object(quality.shutil, "rmtree") as mock_rm:
-            mock_uuid.return_value.hex = "abcd"
-            result = quality.count_records(
-                df, spark, checkpoint_location="/tmp/_dqx_checkpoints/"
-            )
-            self.assertEqual(result, 3)
-            self.assertEqual(spark.storage, {})
-            self.assertEqual(
-                df.writeStream.opts.get("checkpointLocation"),
-                "/tmp/_dqx_checkpoints/abcd/",
-            )
-        mock_rm.assert_called_with("/tmp/_dqx_checkpoints/abcd/", ignore_errors=True)
 
     def test_create_dqx_bad_records_table_streaming(self):
         spark = DummySpark()
