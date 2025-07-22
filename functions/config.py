@@ -44,6 +44,11 @@ JOB_TYPE_MAP = {
         "transform_function": "functions.transform.silver_standard_transform",
         "write_function": "functions.write.write_upsert_snapshot",
     },
+    "silver_sample_batch": {
+        "read_function": "functions.read.read_table",
+        "transform_function": "functions.transform.sample_table",
+        "write_function": "functions.write.overwrite_table",
+    },
     "gold_standard_batch": {
         "read_function": "functions.read.read_table",
         "transform_function": "functions.transform.silver_standard_transform",
