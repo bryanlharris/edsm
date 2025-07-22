@@ -27,6 +27,8 @@ The provided job types are:
   transform and writes the stream without upserts.
 - **silver_scd2_batch** – batch reads and upserts using SCD2 semantics.
 - **silver_standard_batch** – batch reads and writes a snapshot table.
+- **silver_sample_batch** – batch reads a table, samples it with
+  ``sample_table`` and overwrites the destination table.
 - **gold_standard_batch** – batch reads silver data and writes a snapshot
   table.
 
