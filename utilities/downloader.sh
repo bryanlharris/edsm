@@ -22,12 +22,8 @@ download(){
                 filename=$(basename "$url" .gz)
                 wget -nv -O - "$url" \
                     | gunzip -c \
-                    | sed \
-                        -e '1s/^\[//' \
-                        -e '$s/]$//' \
-                        -e 's/^[[:space:]]*//' \
-                        -e 's/},$/}/' > "$filename"
-                cat "$tmp_save_dir/$filename" > "$root_save_dir/$filename"
+                    | jq -c '.[]' \
+                    | tee "$root_save_dir/$filename" > "$tmp_save_dir/$filename"
             done
         )
     fi
