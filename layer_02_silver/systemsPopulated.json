@@ -3,6 +3,9 @@
     "job_type": "silver_scd2_streaming",
     "src_table_name": "edsm.bronze.systemsPopulated",
     "dst_table_name": "edsm.silver.systemsPopulated",
+    "readStreamOptions": {
+        "startingVersion": "latest"
+    },
     "business_key": [
         "id"
     ],
