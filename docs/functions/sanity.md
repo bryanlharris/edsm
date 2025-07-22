@@ -6,7 +6,7 @@ before ingestion runs.
 ## `_discover_settings_files`
 
 Return dictionaries mapping table names to the JSON settings files for
-the bronze, silver and gold layers.
+the bronze, silver, silver sample and gold layers.
 
 ## `validate_settings`
 
@@ -20,14 +20,16 @@ S3 root constants.
 
 Create empty Delta tables based on the configured transforms. Each table
 is built layer by layer starting from an empty DataFrame and written with
-`create_table_if_not_exists`.
+`create_table_if_not_exists`. The read/transform/write chain cascades
+through bronze, silver, silver samples and gold layers.
 
 ## `initialize_schemas_and_volumes`
 
 Create catalogs, schemas and external volumes referenced by the settings.
 History schemas are added when enabled. When a history schema does not exist a
 warning is emitted before the schema is created. An error is raised if multiple
-catalogs or schemas are discovered.
+catalogs or schemas are discovered. Silver sample schemas are processed like
+the other layers so empty tables can be initialized.
 
 ## `validate_s3_roots`
 

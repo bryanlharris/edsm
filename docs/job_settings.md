@@ -24,4 +24,5 @@ Finally the notebook runs several sanity checks:
    S3 root paths are missing a trailing `/`.
 2. `initialize_schemas_and_volumes` ensures catalogs and volumes exist and
    prints a warning when it must create the configured history schema.
-3. `initialize_empty_tables` creates any empty destination tables.
+3. `initialize_empty_tables` creates any empty destination tables, including
+   those defined for silver samples.
