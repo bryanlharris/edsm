@@ -22,6 +22,8 @@ checkpoints are stored when counting streaming records.
 ## `create_dqx_bad_records_table`
 
 Run DQX checks and materialize failing rows to a Delta table named
-`<dst_table_name>_dqx_bad_records`.  Existing tables are removed when no
-failures are found.  If the table exists after processing, an exception is
-raised and the cleaned DataFrame is returned.
+`<dst_table_name>_dqx_bad_records`.  Failing rows are counted first and the
+table is created with `create_table_if_not_exists` only when at least one
+record fails.  Any existing table is removed when no failures are found.  If
+the table remains after processing, an exception is raised and the cleaned
+DataFrame is returned.
