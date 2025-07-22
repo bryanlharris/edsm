@@ -56,7 +56,7 @@ def test_validate_settings_runs_s3_validation(capsys, monkeypatch):
     monkeypatch.setattr(config, 'S3_ROOT_LANDING', 's3://landing')
     monkeypatch.setattr(config, 'S3_ROOT_UTILITY', 's3://utility')
 
-    monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({}, {}, {}))
+    monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({}, {}, {}, {}))
     sanity.validate_settings(DummyDbutils())
 
     out = capsys.readouterr().out
@@ -68,7 +68,7 @@ def test_validate_settings_runs_s3_validation(capsys, monkeypatch):
 
 def test_initialize_schemas_warns_for_missing_history_schema(capsys, monkeypatch):
     path = 'dummy.json'
-    monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({'tbl': path}, {}, {}))
+    monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({'tbl': path}, {}, {}, {}))
 
     import builtins, io, json, types
 
@@ -92,7 +92,7 @@ def test_initialize_schemas_warns_for_missing_history_schema(capsys, monkeypatch
 
 def test_initialize_schemas_history_schema_exists(capsys, monkeypatch):
     path = 'dummy.json'
-    monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({'tbl': path}, {}, {}))
+    monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({'tbl': path}, {}, {}, {}))
 
     import builtins, io, json, types
 

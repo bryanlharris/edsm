@@ -15,7 +15,7 @@ PROJECT_ROOT = config.PROJECT_ROOT
 
 
 def _discover_settings_files():
-    """Return dictionaries of settings files for each layer."""
+    """Return dictionaries of settings files for each layer including samples."""
     project_root = PROJECT_ROOT
     bronze_files = {
         f.stem: str(f)
@@ -25,12 +25,16 @@ def _discover_settings_files():
         f.stem: str(f)
         for f in project_root.glob("layer_*_silver/*.json")
     }
+    silver_sample_files = {
+        f.stem: str(f)
+        for f in project_root.glob("layer_*_silver_samples/*.json")
+    }
     gold_files = {
         f.stem: str(f)
         for f in project_root.glob("layer_*_gold/*.json")
     }
 
-    return bronze_files, silver_files, gold_files
+    return bronze_files, silver_files, silver_sample_files, gold_files
 
 
 def validate_s3_roots():
@@ -62,15 +66,21 @@ def validate_settings(dbutils):
     silver_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="silver")
     gold_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="gold")
 
-    bronze_files, silver_files, gold_files = _discover_settings_files()
+    bronze_files, silver_files, silver_sample_files, gold_files = _discover_settings_files()
 
-    all_tables = set(list(bronze_files.keys()) + list(silver_files.keys()) + list(gold_files.keys()))
+    all_tables = set(
+        list(bronze_files.keys())
+        + list(silver_files.keys())
+        + list(silver_sample_files.keys())
+        + list(gold_files.keys())
+    )
 
-    layers=["bronze","silver","gold"]
+    layers = ["bronze", "silver", "silver_samples", "gold"]
     required_keys={
         "bronze":["read_function","transform_function","write_function","dst_table_name","file_schema"],
         "silver":["read_function","transform_function","write_function","src_table_name","dst_table_name"],
-        "gold":["read_function","transform_function","write_function","src_table_name","dst_table_name"]
+        "gold":["read_function","transform_function","write_function","src_table_name","dst_table_name"],
+        "silver_samples":["read_function","transform_function","write_function","src_table_name","dst_table_name"],
     }
 
 
@@ -91,7 +101,12 @@ def validate_settings(dbutils):
     errs = []
 
     # Check for required functions
-    for layer, files in [("bronze", bronze_files), ("silver", silver_files), ("gold", gold_files)]:
+    for layer, files in [
+        ("bronze", bronze_files),
+        ("silver", silver_files),
+        ("silver_samples", silver_sample_files),
+        ("gold", gold_files),
+    ]:
         for tbl, path in files.items():
             settings=json.loads(open(path).read())
             settings = apply_job_type(settings)
@@ -118,29 +133,38 @@ def initialize_empty_tables(spark):
     """Create empty Delta tables based on settings definitions."""
 
     errs = []
-    bronze_files, silver_files, gold_files = _discover_settings_files()
+    bronze_files, silver_files, silver_sample_files, gold_files = _discover_settings_files()
 
-    all_tables = set(list(bronze_files.keys()) + list(silver_files.keys()) + list(gold_files.keys()))
+    all_tables = set(
+        list(bronze_files.keys())
+        + list(silver_files.keys())
+        + list(silver_sample_files.keys())
+        + list(gold_files.keys())
+    )
 
-    layers=["bronze","silver","gold"]
+    layers = ["bronze", "silver", "silver_samples", "gold"]
 
     ## For each table and each layer, cascade transforms and create table
     for tbl in sorted(all_tables):
         df=None
         skip_table=False
         for layer in layers:
-            if layer=="bronze" and tbl not in bronze_files:
+            if layer == "bronze" and tbl not in bronze_files:
                 break
-            if layer=="silver" and tbl not in silver_files:
+            if layer == "silver" and tbl not in silver_files:
                 break
-            if layer=="gold" and tbl not in gold_files:
+            if layer == "silver_samples" and tbl not in silver_sample_files:
+                continue
+            if layer == "gold" and tbl not in gold_files:
                 break
-            if layer=="bronze":
-                path=bronze_files[tbl]
-            elif layer=="silver":
-                path=silver_files[tbl]
-            elif layer=="gold":
-                path=gold_files[tbl]
+            if layer == "bronze":
+                path = bronze_files[tbl]
+            elif layer == "silver":
+                path = silver_files[tbl]
+            elif layer == "silver_samples":
+                path = silver_sample_files[tbl]
+            elif layer == "gold":
+                path = gold_files[tbl]
             settings=json.loads(open(path).read())
             settings = apply_job_type(settings)
             if layer=="bronze":
@@ -172,12 +196,23 @@ def initialize_empty_tables(spark):
 def initialize_schemas_and_volumes(spark):
     """Create schemas and external volumes based on settings definitions."""
 
-    bronze_files, silver_files, gold_files = _discover_settings_files()
+    bronze_files, silver_files, silver_sample_files, gold_files = _discover_settings_files()
 
     errs = []
 
-    schemas = {"bronze": set(), "silver": set(), "gold": set(), "history": set()}
-    file_map = {"bronze": bronze_files, "silver": silver_files, "gold": gold_files}
+    schemas = {
+        "bronze": set(),
+        "silver": set(),
+        "silver_samples": set(),
+        "gold": set(),
+        "history": set(),
+    }
+    file_map = {
+        "bronze": bronze_files,
+        "silver": silver_files,
+        "silver_samples": silver_sample_files,
+        "gold": gold_files,
+    }
     catalogs = set()
 
     for color, files in file_map.items():
@@ -195,7 +230,7 @@ def initialize_schemas_and_volumes(spark):
                 if history_schema:
                     schemas["history"].add((catalog, history_schema))
 
-    for color in ["bronze", "silver", "gold"]:
+    for color in ["bronze", "silver", "silver_samples", "gold"]:
         if len(schemas[color]) > 1:
             errs.append(
                 f"Multiple schemas discovered for {color}: {sorted(schemas[color])}"
@@ -218,12 +253,13 @@ def initialize_schemas_and_volumes(spark):
     volume_map = {
         "bronze": ["landing", "utility"],
         "silver": ["utility"],
+        "silver_samples": ["utility"],
         "gold": ["utility"],
     }
 
     missing_history = False
 
-    for color in ["bronze", "silver", "gold", "history"]:
+    for color in ["bronze", "silver", "silver_samples", "gold", "history"]:
         for catalog, schema in sorted(schemas[color]):
             if color == "history" and not schema_exists(catalog, schema, spark):
                 print(f"\tWARNING: History schema does not exist: {catalog}.{schema}")
