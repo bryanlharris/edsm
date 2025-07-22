@@ -393,8 +393,9 @@ def create_bad_records_table(settings, spark):
 
     try:
         path = Path(bad_records_path)
-        if path.is_dir() and any(path.iterdir()):
-            df = spark.read.json(bad_records_path)
+        files = [str(p) for p in path.rglob("*") if p.is_file()]
+        if files:
+            df = spark.read.json(files)
             df.write.mode("overwrite").format("delta").saveAsTable(
                 f"{dst_table_name}_bad_records"
             )

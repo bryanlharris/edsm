@@ -48,7 +48,9 @@ Print the mapping between streaming batch IDs and bronze versions by reading Del
 
 ## `create_bad_records_table`
 
-Create `<dst_table_name>_bad_records` from JSON files in `badRecordsPath`. If no files are present the table is dropped. An exception is raised if the table exists after creation, signalling that bad records were found.
+Create `<dst_table_name>_bad_records` from JSON files located under `badRecordsPath`.
+All files are discovered recursively, allowing for nested `bad_records` folders.
+If no files are present the table is dropped. An exception is raised if the table exists after creation, signalling that bad records were found.
 
 ## `parse_si`
 
