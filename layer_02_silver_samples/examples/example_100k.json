@@ -1,0 +1,10 @@
+{
+    "simple_settings": "true",
+    "job_type": "silver_sample_batch",
+    "src_table_name": "edsm.silver.example",
+    "dst_table_name": "edsm.silver_samples.example_100k",
+    "sample_type": "simple",
+    "sample_id_col": "id",
+    "sample_size": "100k",
+    "dqx_checks": []
+}

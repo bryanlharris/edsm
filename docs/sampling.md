@@ -53,6 +53,21 @@ sampled_df = sample_table(df, settings, spark)
 This configuration returns roughly 5% of `df` using a stable hash based on a
 modulus of 2,000,000.
 
+### Using `sample_size`
+
+```python
+settings = {
+    "sample_type": "simple",
+    "sample_id_col": "id",
+    "sample_size": "1k",
+    "src_table_name": "my_database.my_table",
+}
+
+sampled_df = sample_table(df, settings, spark)
+```
+
+This approach keeps approximately 1,000 rows by hashing the `id` column.
+
 ## Persisting samples
 
 When using `sample_table` to materialize a sampled table, configure the job to
