@@ -13,6 +13,7 @@ from typing import Tuple, Any, Optional
 import uuid
 import os
 import shutil
+from .utility import create_table_if_not_exists
 from .dq_checks import (
     min_max,
     is_in,
@@ -154,6 +155,8 @@ def create_dqx_bad_records_table(df: Any, settings: dict, spark: Any) -> Any:
 
     df, bad_df = apply_dqx_checks(df, settings, spark)
 
+    dst_bad_table = f"{dst_table_name}_dqx_bad_records"
+
     checkpoint_location = settings.get("writeStreamOptions", {}).get(
         "checkpointLocation"
     )
@@ -161,7 +164,6 @@ def create_dqx_bad_records_table(df: Any, settings: dict, spark: Any) -> Any:
         base = checkpoint_location.rstrip("/")
         parent = os.path.dirname(base)
         checkpoint_location = f"{parent}/_dqx_checkpoints/"
-        os.makedirs(checkpoint_location, exist_ok=True)
 
     if getattr(bad_df, "isStreaming", False):
         if checkpoint_location is None:
@@ -169,31 +171,34 @@ def create_dqx_bad_records_table(df: Any, settings: dict, spark: Any) -> Any:
                 "checkpoint_location must be provided for streaming DataFrames"
             )
 
-        run_id = uuid.uuid4().hex
-        location = f"{checkpoint_location.rstrip('/')}/{run_id}/"
-
-        (
-            bad_df.writeStream.format("delta")
-            .option("checkpointLocation", location)
-            .trigger(availableNow=True)
-            .table(f"{dst_table_name}_dqx_bad_records")
+        n_bad = count_records(
+            bad_df, spark, checkpoint_location=checkpoint_location
         )
-        shutil.rmtree(location, ignore_errors=True)
-
-        n_bad = spark.table(f"{dst_table_name}_dqx_bad_records").count()
+        if n_bad > 0:
+            run_id = uuid.uuid4().hex
+            location = f"{checkpoint_location.rstrip('/')}/{run_id}/"
+            create_table_if_not_exists(bad_df, dst_bad_table, spark)
+            (
+                bad_df.writeStream.format("delta")
+                .option("checkpointLocation", location)
+                .trigger(availableNow=True)
+                .table(dst_bad_table)
+            )
+            shutil.rmtree(location, ignore_errors=True)
     else:
         n_bad = bad_df.count()
         if n_bad > 0:
+            create_table_if_not_exists(bad_df, dst_bad_table, spark)
             (
                 bad_df.write.mode("overwrite")
                 .format("delta")
-                .saveAsTable(f"{dst_table_name}_dqx_bad_records")
+                .saveAsTable(dst_bad_table)
             )
 
     if n_bad == 0:
-        spark.sql(f"DROP TABLE IF EXISTS {dst_table_name}_dqx_bad_records")
+        spark.sql(f"DROP TABLE IF EXISTS {dst_bad_table}")
 
-    if spark.catalog.tableExists(f"{dst_table_name}_dqx_bad_records"):
+    if spark.catalog.tableExists(dst_bad_table):
         raise Exception(f"DQX checks failed: {n_bad} failing records")
 
     return df
