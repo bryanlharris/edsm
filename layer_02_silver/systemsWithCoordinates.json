@@ -3,9 +3,7 @@
     "job_type": "silver_upsert_streaming",
     "src_table_name": "edsm.bronze.systemsWithCoordinates7days",
     "dst_table_name": "edsm.silver.systemsWithCoordinates",
-    "readStreamOptions": {
-        "startingVersion": "latest"
-    },
+    "readStreamOptions": {},
     "business_key": [
         "id"
     ],
