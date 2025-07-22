@@ -156,7 +156,7 @@ class SimpleMergeTests(unittest.TestCase):
 
 
 class StreamingWriteTests(unittest.TestCase):
-    def test_stream_write_table_awaits(self):
+    def test_stream_write_table_returns_query(self):
         df = DummyStreamingDF()
         spark = DummySpark()
         settings = {
@@ -164,9 +164,9 @@ class StreamingWriteTests(unittest.TestCase):
             'writeStreamOptions': {}
         }
         query = write.stream_write_table(df, settings, spark)
-        self.assertTrue(query.terminated)
+        self.assertFalse(query.terminated)
 
-    def test_stream_upsert_table_awaits(self):
+    def test_stream_upsert_table_returns_query(self):
         df = DummyStreamingDF()
         spark = DummySpark()
         settings = {
@@ -175,7 +175,7 @@ class StreamingWriteTests(unittest.TestCase):
             'upsert_function': 'foo'
         }
         query = write.stream_upsert_table(df, settings, spark)
-        self.assertTrue(query.terminated)
+        self.assertFalse(query.terminated)
 
 if __name__ == '__main__':
     unittest.main()

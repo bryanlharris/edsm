@@ -27,7 +27,6 @@ def stream_write_table(df, settings, spark):
         .table(dst_table_name)
     )
 
-    query.awaitTermination()
     return query
 
 
@@ -45,7 +44,6 @@ def stream_upsert_table(df, settings, spark):
         .start()
     )
 
-    query.awaitTermination()
     return query
 
 
