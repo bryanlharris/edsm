@@ -1,0 +1,10 @@
+{
+    "simple_settings": "true",
+    "job_type": "silver_sample_batch",
+    "src_table_name": "edsm.silver.systemsWithoutCoordinates",
+    "dst_table_name": "edsm.silver_samples.systemsWithoutCoordinates",
+    "sample_type": "simple",
+    "sample_id_col": "id",
+    "sample_size": "1k",
+    "dqx_checks": []
+}
