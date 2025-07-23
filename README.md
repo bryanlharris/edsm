@@ -25,7 +25,7 @@ For documentation, see [here](https://github.com/bryanlharris/Documentation).
 * [docs/functions/transform.md](docs/functions/transform.md) - Transformation helpers.
 * [docs/utilities/downloader.md](docs/utilities/downloader.md) - Details about fetching nightly dumps.
 * [docs/utilities/profile_silver_table.md](docs/utilities/profile_silver_table.md) - Notebook for generating DQX rules from a silver table.
-* [docs/utilities/drop_history_tables.md](docs/utilities/drop_history_tables.md) - Notebook for removing history tables.
+* [docs/utilities/drop_schema_tables.md](docs/utilities/drop_schema_tables.md) - Notebook for removing history tables from a schema.
 * [docs/utilities/migrate_history_tables.md](docs/utilities/migrate_history_tables.md) - Convert and remove old history tables.
 * [docs/utilities/add_history_ingest_time.md](docs/utilities/add_history_ingest_time.md) - Notebook for adding `ingest_time` to history tables.
 * [docs/utilities/drop_rescued_data.md](docs/utilities/drop_rescued_data.md) - Notebook for removing `_rescued_data` columns from all tables.
