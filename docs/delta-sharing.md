@@ -55,12 +55,18 @@ df.show()
 The path `delta_sharing.catalog.schema.table` comes from `profile.share`.
 Use `spark.sql('SHOW TABLES IN delta_sharing')` to list available tables.
 
-## `utilities/delta_sharing_example.py`
 
-A small script in the repository performs the same setup. Pass the credential
-file and table path as optional arguments.
+To run PySpark locally you must submit your script with the Delta Sharing jar:
 
 ```bash
-python utilities/delta_sharing_example.py profile.share delta_sharing.catalog.schema.table
+spark-submit --packages io.delta:delta-sharing-spark_2.12:3.1.0 your_script.py
 ```
 
+## Example scripts
+
+Two runnable examples are included in the repository:
+
+* `utilities/delta_sharing_load.py` uses `spark.read.format("deltaSharing")` to load the table and select columns.
+* `utilities/delta_sharing_view.py` creates a temporary view using the Delta Sharing data source and queries it with SQL.
+
+Each script expects the path to the `.share` file and table to be updated as needed.
