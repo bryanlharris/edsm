@@ -54,7 +54,7 @@ df.show()
 
 The path `delta_sharing.catalog.schema.table` comes from `profile.share`.
 Use `spark.sql('SHOW TABLES IN delta_sharing')` to list available tables.
-
+**Note:** Delta Sharing does not support tables that use column mapping mode `name` or those with deletion vectors.
 
 To run PySpark locally you must submit your script with the Delta Sharing jar:
 
@@ -66,7 +66,7 @@ spark-submit --packages io.delta:delta-sharing-spark_2.12:3.1.0 your_script.py
 
 Two runnable examples are included in the repository:
 
-* `utilities/delta_sharing_load.py` uses `spark.read.format("deltaSharing")` to load the table and select columns.
-* `utilities/delta_sharing_view.py` creates a temporary view using the Delta Sharing data source and queries it with SQL.
+* `pyspark-scripts/delta_sharing_load.py` uses `spark.read.format("deltaSharing")` to load the table and select columns.
+* `pyspark-scripts/delta_sharing_view.py` creates a temporary view using the Delta Sharing data source and queries it with SQL.
 
 Each script expects the path to the `.share` file and table to be updated as needed.
