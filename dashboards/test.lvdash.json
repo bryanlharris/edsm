@@ -35,6 +35,12 @@
           "keyword": "schema",
           "dataType": "STRING",
           "defaultSelection": {}
+        },
+        {
+          "displayName": "table",
+          "keyword": "table",
+          "dataType": "STRING",
+          "defaultSelection": {}
         }
       ]
     }
@@ -201,11 +207,53 @@
         {
           "widget": {
             "name": "e808ecac",
+            "queries": [
+              {
+                "name": "dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f0676ae8d175468aebc67d4200a111_full_table",
+                "query": {
+                  "datasetName": "e17056e7",
+                  "fields": [
+                    {
+                      "name": "full_table",
+                      "expression": "`full_table`"
+                    },
+                    {
+                      "name": "full_table_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "parameter_dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f06766f5701c6c9695164283653baf_table",
+                "query": {
+                  "datasetName": "e17056e7",
+                  "parameters": [
+                    {
+                      "name": "table",
+                      "keyword": "table"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
             "spec": {
               "version": 2,
               "widgetType": "filter-single-select",
               "encodings": {
-                "fields": []
+                "fields": [
+                  {
+                    "fieldName": "full_table",
+                    "displayName": "full_table",
+                    "queryName": "dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f0676ae8d175468aebc67d4200a111_full_table"
+                  },
+                  {
+                    "parameterName": "table",
+                    "queryName": "parameter_dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f06766f5701c6c9695164283653baf_table"
+                  }
+                ]
               },
               "disallowAll": true,
               "frame": {
