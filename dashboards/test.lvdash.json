@@ -42,7 +42,7 @@
       "name": "0535e110",
       "displayName": "history",
       "queryLines": [
-        "describe history :`full_table_name`;"
+        "describe history identifier(:`full_table_name`);"
       ],
       "parameters": [
         {
