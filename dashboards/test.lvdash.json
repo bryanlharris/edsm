@@ -21,7 +21,7 @@
         "SELECT table_catalog || '.' || table_schema || '.' || table_name AS full_table\r\n",
         "FROM system.information_schema.tables\r\n",
         "WHERE table_catalog = :`catalog`\r\n",
-        "  AND table_schema = :`schema`\r\n"
+        "  AND table_schema = :`schema`"
       ],
       "parameters": [
         {
@@ -35,10 +35,19 @@
           "keyword": "schema",
           "dataType": "STRING",
           "defaultSelection": {}
-        },
+        }
+      ]
+    },
+    {
+      "name": "0535e110",
+      "displayName": "history",
+      "queryLines": [
+        "describe history :`full_table_name`;"
+      ],
+      "parameters": [
         {
-          "displayName": "table",
-          "keyword": "table",
+          "displayName": "full_table_name",
+          "keyword": "full_table_name",
           "dataType": "STRING",
           "defaultSelection": {}
         }
@@ -209,7 +218,7 @@
             "name": "e808ecac",
             "queries": [
               {
-                "name": "dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f0676ae8d175468aebc67d4200a111_full_table",
+                "name": "dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f0676c8fb61da18a645a2d88fbbb07_full_table",
                 "query": {
                   "datasetName": "e17056e7",
                   "fields": [
@@ -226,13 +235,13 @@
                 }
               },
               {
-                "name": "parameter_dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f06766f5701c6c9695164283653baf_table",
+                "name": "parameter_dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f0676d079d14e9899d8c418ac51ed5_full_table_name",
                 "query": {
-                  "datasetName": "e17056e7",
+                  "datasetName": "0535e110",
                   "parameters": [
                     {
-                      "name": "table",
-                      "keyword": "table"
+                      "name": "full_table_name",
+                      "keyword": "full_table_name"
                     }
                   ],
                   "disaggregated": false
@@ -247,11 +256,11 @@
                   {
                     "fieldName": "full_table",
                     "displayName": "full_table",
-                    "queryName": "dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f0676ae8d175468aebc67d4200a111_full_table"
+                    "queryName": "dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f0676c8fb61da18a645a2d88fbbb07_full_table"
                   },
                   {
-                    "parameterName": "table",
-                    "queryName": "parameter_dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f06766f5701c6c9695164283653baf_table"
+                    "parameterName": "full_table_name",
+                    "queryName": "parameter_dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f0676d079d14e9899d8c418ac51ed5_full_table_name"
                   }
                 ]
               },
@@ -267,6 +276,63 @@
             "y": 2,
             "width": 2,
             "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "6ef6b511",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "0535e110",
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {},
+              "invisibleColumns": [
+                {
+                  "booleanValues": [
+                    "false",
+                    "true"
+                  ],
+                  "imageUrlTemplate": "{{ @ }}",
+                  "imageTitleTemplate": "{{ @ }}",
+                  "imageWidth": "",
+                  "imageHeight": "",
+                  "linkUrlTemplate": "{{ @ }}",
+                  "linkTextTemplate": "{{ @ }}",
+                  "linkTitleTemplate": "{{ @ }}",
+                  "linkOpenInNewTab": true,
+                  "name": "catalog_name",
+                  "type": "string",
+                  "displayAs": "string",
+                  "order": 100000,
+                  "title": "catalog_name",
+                  "allowSearch": false,
+                  "alignContent": "left",
+                  "allowHTML": false,
+                  "highlightLinks": false,
+                  "useMonospaceFont": false,
+                  "preserveWhitespace": false
+                }
+              ],
+              "allowHTMLByDefault": false,
+              "itemsPerPage": 25,
+              "paginationSize": "default",
+              "condensed": true,
+              "withRowNumber": false
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 0,
+            "width": 3,
+            "height": 6
           }
         }
       ],
