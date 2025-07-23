@@ -29,3 +29,4 @@ For documentation, see [here](https://github.com/bryanlharris/Documentation).
 * [docs/utilities/migrate_history_tables.md](docs/utilities/migrate_history_tables.md) - Convert and remove old history tables.
 * [docs/utilities/add_history_ingest_time.md](docs/utilities/add_history_ingest_time.md) - Notebook for adding `ingest_time` to history tables.
 * [docs/utilities/drop_rescued_data.md](docs/utilities/drop_rescued_data.md) - Notebook for removing `_rescued_data` columns from all tables.
+* [docs/utilities/restore_table_version_dashboard.md](docs/utilities/restore_table_version_dashboard.md) - Databricks SQL dashboard for restoring table versions.
