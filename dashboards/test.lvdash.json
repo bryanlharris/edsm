@@ -1,0 +1,233 @@
+{
+  "datasets": [
+    {
+      "name": "717d6baf",
+      "displayName": "schemas",
+      "queryLines": [
+        "SELECT schema_name FROM information_schema.schemata;"
+      ]
+    },
+    {
+      "name": "f124040c",
+      "displayName": "catalogs",
+      "queryLines": [
+        "SELECT catalog_name FROM information_schema.catalogs;"
+      ]
+    },
+    {
+      "name": "e17056e7",
+      "displayName": "tables",
+      "queryLines": [
+        "SELECT table_catalog || '.' || table_schema || '.' || table_name AS full_table\r\n",
+        "FROM system.information_schema.tables\r\n",
+        "WHERE table_catalog = :`catalog`\r\n",
+        "  AND table_schema = :`schema`\r\n"
+      ],
+      "parameters": [
+        {
+          "displayName": "catalog",
+          "keyword": "catalog",
+          "dataType": "STRING",
+          "defaultSelection": {}
+        },
+        {
+          "displayName": "schema",
+          "keyword": "schema",
+          "dataType": "STRING",
+          "defaultSelection": {}
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "aeed3650",
+      "displayName": "Untitled page",
+      "layout": [
+        {
+          "widget": {
+            "name": "4b5c96bb",
+            "queries": [
+              {
+                "name": "dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f06763f14e100086713c0e07b220c2_schema_name",
+                "query": {
+                  "datasetName": "717d6baf",
+                  "fields": [
+                    {
+                      "name": "schema_name",
+                      "expression": "`schema_name`"
+                    },
+                    {
+                      "name": "schema_name_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "parameter_dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f06766f5701c6c9695164283653baf_schema",
+                "query": {
+                  "datasetName": "e17056e7",
+                  "parameters": [
+                    {
+                      "name": "schema",
+                      "keyword": "schema"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "schema_name",
+                    "displayName": "schema_name",
+                    "queryName": "dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f06763f14e100086713c0e07b220c2_schema_name"
+                  },
+                  {
+                    "parameterName": "schema",
+                    "queryName": "parameter_dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f06766f5701c6c9695164283653baf_schema"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "schema"
+              },
+              "disallowAll": true,
+              "selection": {
+                "defaultSelection": {
+                  "values": {
+                    "dataType": "STRING",
+                    "values": [
+                      {
+                        "value": "silver"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "9b2a3bab",
+            "queries": [
+              {
+                "name": "dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f067643f381bf6b398b81e7c74c080_catalog_name",
+                "query": {
+                  "datasetName": "f124040c",
+                  "fields": [
+                    {
+                      "name": "catalog_name",
+                      "expression": "`catalog_name`"
+                    },
+                    {
+                      "name": "catalog_name_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "parameter_dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f06766f5701c6c9695164283653baf_catalog",
+                "query": {
+                  "datasetName": "e17056e7",
+                  "parameters": [
+                    {
+                      "name": "catalog",
+                      "keyword": "catalog"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "catalog_name",
+                    "displayName": "catalog_name",
+                    "queryName": "dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f067643f381bf6b398b81e7c74c080_catalog_name"
+                  },
+                  {
+                    "parameterName": "catalog",
+                    "queryName": "parameter_dashboards/01f06763c53d1910ba163c8a3d87e56a/datasets/01f06766f5701c6c9695164283653baf_catalog"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "catalog"
+              },
+              "disallowAll": true,
+              "selection": {
+                "defaultSelection": {
+                  "values": {
+                    "dataType": "STRING",
+                    "values": [
+                      {
+                        "value": "edsm"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "e808ecac",
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": []
+              },
+              "disallowAll": true,
+              "frame": {
+                "showTitle": true,
+                "title": "table"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 1
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    }
+  }
+}
