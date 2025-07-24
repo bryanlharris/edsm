@@ -143,12 +143,13 @@ def create_dqx_bad_records_table(df: Any, settings: dict, spark: Any) -> Any:
             .saveAsTable(dst_bad_table)
         )
 
-        (
+        query = (
             bad_df.writeStream.format("delta")
             .option("checkpointLocation", location)
             .trigger(availableNow=True)
             .table(dst_bad_table)
         )
+        query.awaitTermination()
         shutil.rmtree(location, ignore_errors=True)
         n_bad = spark.table(dst_bad_table).count()
     else:

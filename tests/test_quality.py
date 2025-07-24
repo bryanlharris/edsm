@@ -49,8 +49,11 @@ class DummyStreamingDF(DummyDF):
 
 
 class DummyStreamingQuery:
+    def __init__(self):
+        self.terminated = False
+
     def awaitTermination(self):
-        pass
+        self.terminated = True
 
 
 class DummyWriteStream:
@@ -82,13 +85,17 @@ class DummyWriteStream:
 
     def start(self):
         self.spark.storage[self.name] = getattr(self.df, "rows", [])
-        return DummyStreamingQuery()
+        self.query = DummyStreamingQuery()
+        self.spark.last_query = self.query
+        return self.query
 
     def table(self, table_name):
         self.spark.tables.setdefault(table_name, []).extend(
             getattr(self.df, "rows", [])
         )
-        return DummyStreamingQuery()
+        self.query = DummyStreamingQuery()
+        self.spark.last_query = self.query
+        return self.query
 
 
 class DummySpark:
@@ -96,6 +103,7 @@ class DummySpark:
         self.created = []
         self.storage = {}
         self.tables = {}
+        self.last_query = None
         self.catalog = types.SimpleNamespace(
             dropTempView=self.storage.pop,
             tableExists=lambda name: name in self.tables,
@@ -221,6 +229,7 @@ class QualityTests(unittest.TestCase):
             mock_rm.assert_called_with(
                 "/tmp/base/_dqx_checkpoints/abcd/", ignore_errors=True
             )
+            self.assertTrue(spark.last_query.terminated)
 
 
 if __name__ == "__main__":
