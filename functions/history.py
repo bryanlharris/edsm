@@ -1,4 +1,8 @@
-from .utility import create_table_if_not_exists, truncate_table_if_exists
+from .utility import (
+    create_table_if_not_exists,
+    truncate_table_if_exists,
+    schema_exists,
+)
 from .transform import add_row_hash
 from pyspark.sql.functions import col, lit, current_timestamp
 
@@ -125,5 +129,23 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
             when not matched then insert *
         """
         )
+
+
+def history_pipeline(settings, spark):
+    build_history = str(settings.get("build_history", "false")).lower() == "true"
+    if not build_history:
+        return
+
+    full_table = settings.get("full_table_name", settings.get("dst_table_name"))
+    history_schema = settings.get("history_schema")
+    if not history_schema:
+        print("Skipping history build: no history_schema provided")
+        return
+
+    catalog = full_table.split(".")[0]
+    if schema_exists(catalog, history_schema, spark):
+        build_and_merge_file_history(full_table, history_schema, spark)
+    else:
+        print(f"Skipping history build: schema {catalog}.{history_schema} not found")
 
 
