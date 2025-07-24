@@ -8,4 +8,4 @@
 4. Calls `build_and_merge_file_history` when the history schema exists.
 5. Skips execution if no history schema is configured or the schema can't be found.
 
-This notebook runs after bronze ingestion so history creation can happen in parallel with silver processing.
+This notebook runs after bronze ingestion so history creation can happen alongside the silver processing.

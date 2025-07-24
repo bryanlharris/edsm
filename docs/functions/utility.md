@@ -14,9 +14,6 @@ Internal helper that recursively combines dictionaries, giving precedence to ove
 
 When `simple_settings` is `true`, expand `job_type` into explicit function names from `JOB_TYPE_MAP`. For `bronze_standard_streaming` it also derives landing and utility paths from `dst_table_name`. Silver and gold job types add history and streaming defaults as needed.
 
-## `sort_by_dependency`
-
-Return tables ordered so all dependencies come first. Raises an exception if a cycle is detected.
 
 ## `get_function`
 

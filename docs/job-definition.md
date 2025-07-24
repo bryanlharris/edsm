@@ -8,9 +8,8 @@ The job is named **edsm** and is triggered when new files arrive under `/Volumes
 - **job_settings** – loads job configuration from the `00_job_settings` notebook and passes settings to downstream tasks.
 - **bronze_loop** – iterates over the `bronze` job settings, launching the `03_ingest` notebook for each table with the parameter `color` set to `bronze`.
 - **history_loop** – builds file ingestion history tables using the `04_history` notebook.
-- **silver_parallel_loop** – processes tables listed under `silver_parallel` in parallel using the `03_ingest` notebook with `color` set to `silver`.
-- **silver_sequential_loop** – runs the remaining silver tasks one at a time from `silver_sequential`.
-- **silver_samples_loop** – executes any sampling jobs defined under `silver_samples` after the sequential tasks complete.
+- **silver_loop** – processes tables listed under `silver` using the `03_ingest` notebook with `color` set to `silver`.
+- **silver_samples_loop** – executes any sampling jobs defined under `silver_samples` after the silver loop completes.
 - **gold_loop** – executes the final gold layer jobs defined in `gold`.
 
 Each task references notebooks in the Databricks workspace and has retry settings disabled for auto optimization.
