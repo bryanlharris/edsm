@@ -71,5 +71,31 @@ class HistoryTests(unittest.TestCase):
         history.describe_and_filter_history = lambda *a, **k: []
         history.build_and_merge_file_history('cat.sch.tbl', 'hist', spark)
 
+    def test_history_pipeline_calls_build_when_schema_exists(self):
+        calls = []
+        history.build_and_merge_file_history = lambda full, schema, sp: calls.append((full, schema))
+        history.schema_exists = lambda catalog, schema, sp: True
+        spark = DummySpark()
+        settings = {
+            'build_history': 'true',
+            'dst_table_name': 'cat.sch.tbl',
+            'history_schema': 'hist',
+        }
+        history.history_pipeline(settings, spark)
+        self.assertEqual(calls, [('cat.sch.tbl', 'hist')])
+
+    def test_history_pipeline_skips_when_schema_missing(self):
+        calls = []
+        history.build_and_merge_file_history = lambda *a, **k: calls.append('called')
+        history.schema_exists = lambda catalog, schema, sp: False
+        spark = DummySpark()
+        settings = {
+            'build_history': 'true',
+            'dst_table_name': 'cat.sch.tbl',
+            'history_schema': 'hist',
+        }
+        history.history_pipeline(settings, spark)
+        self.assertEqual(calls, [])
+
 if __name__ == '__main__':
     unittest.main()
