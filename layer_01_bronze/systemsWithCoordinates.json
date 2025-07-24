@@ -9,9 +9,7 @@
         "encoding": "utf-8",
         "cloudFiles.maxFilesPerTrigger": "1",
         "pathGlobFilter": "systemsWithCoordinates.json",
-        "multiline": "false",
-        "cloudFiles.backfillInterval": "1 day",
-        "cloudFiles.allowOverwrites": "true"
+        "multiline": "false"
     },
     "file_schema": {
         "fields": [
