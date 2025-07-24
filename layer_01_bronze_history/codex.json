@@ -1,0 +1,6 @@
+{
+    "simple_settings": "true",
+    "job_type": "history_pipeline",
+    "full_table_name": "edsm.bronze.codex",
+    "history_schema": "history"
+}
