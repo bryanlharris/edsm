@@ -58,23 +58,6 @@ def validate_s3_roots():
 
     return updated
 
-
-def warn_history_dst_table_names():
-    """Warn when history settings are missing ``dst_table_name``.
-
-    History jobs default to ``<full_table_name>_history`` when a destination
-    table name is not provided. This helper scans ``layer_*_bronze_history`` for
-    such cases and prints a warning.
-    """
-
-    for path in PROJECT_ROOT.glob("layer_*_bronze_history/*.json"):
-        settings = json.loads(open(path).read())
-        settings = apply_job_type(settings)
-        if not settings.get("dst_table_name"):
-            full = settings.get("full_table_name")
-            default = f"{full}_history" if full else "<unknown>_history"
-            print(f"\tWARNING: {path} missing dst_table_name; defaulting to {default}")
-
 def validate_settings(dbutils):
     """Ensure all settings files contain required keys before processing."""
 
@@ -143,7 +126,6 @@ def validate_settings(dbutils):
 
     # Validate S3 root configuration after settings are confirmed
     validate_s3_roots()
-    warn_history_dst_table_names()
 
 
 
