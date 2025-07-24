@@ -15,6 +15,10 @@ if ! command -v databricks > /dev/null 2>&1; then
 fi
 
 # Import current directory to the workspace, overwriting existing items
+# Exclude the .git folder so repository metadata is not uploaded
 
-databricks --profile "$profile" workspace import_dir -o "$(pwd)" "$dest"
+tmp_dir=$(mktemp -d)
+trap 'rm -rf "$tmp_dir"' EXIT
+rsync -a --exclude='.git' ./ "$tmp_dir"/
+databricks --profile "$profile" workspace import-dir "$tmp_dir" "$dest" --overwrite
 
