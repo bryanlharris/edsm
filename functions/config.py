@@ -54,6 +54,9 @@ JOB_TYPE_MAP = {
         "transform_function": "functions.transform.silver_standard_transform",
         "write_function": "functions.write.write_upsert_snapshot",
     },
+    "history_pipeline": {
+        "pipeline_function": "functions.history.history_pipeline",
+    },
 }
 
 
