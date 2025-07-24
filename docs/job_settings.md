@@ -18,7 +18,9 @@ Each section of `job_settings` is stored in a Databricks task value so downstrea
 Finally the notebook runs several sanity checks:
 
 1. `validate_settings` verifies the settings are well formed and warns if the
-   S3 root paths are missing a trailing `/`.
+   S3 root paths are missing a trailing `/`. It also prints a warning when any
+   history settings omit `dst_table_name`, noting that `_history` will be
+   appended by default.
 2. `initialize_schemas_and_volumes` ensures catalogs and volumes exist and
    prints a warning when it must create the configured history schema.
 3. `initialize_empty_tables` creates any empty destination tables, including

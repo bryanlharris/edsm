@@ -69,11 +69,11 @@ class HistoryTests(unittest.TestCase):
     def test_handles_empty_file_version_table(self):
         spark = DummySpark(exists=True, last_value=None, current_value=0)
         history.describe_and_filter_history = lambda *a, **k: []
-        history.build_and_merge_file_history('cat.sch.tbl', 'hist', spark)
+        history.build_and_merge_file_history('cat.sch.tbl', 'hist', spark, 'cat.hist.tbl')
 
     def test_history_pipeline_calls_build_when_schema_exists(self):
         calls = []
-        history.build_and_merge_file_history = lambda full, schema, sp: calls.append((full, schema))
+        history.build_and_merge_file_history = lambda full, schema, sp, dst: calls.append((full, schema, dst))
         history.schema_exists = lambda catalog, schema, sp: True
         spark = DummySpark()
         settings = {
@@ -82,7 +82,7 @@ class HistoryTests(unittest.TestCase):
             'history_schema': 'hist',
         }
         history.history_pipeline(settings, spark)
-        self.assertEqual(calls, [('cat.sch.tbl', 'hist')])
+        self.assertEqual(calls, [('cat.sch.tbl', 'hist', 'cat.sch.tbl')])
 
     def test_history_pipeline_skips_when_schema_missing(self):
         calls = []

@@ -28,15 +28,30 @@ def describe_and_filter_history(full_table_name, spark):
     version_list = sorted(version_list)
     return version_list
 
-def build_and_merge_file_history(full_table_name, history_schema, spark):
+def build_and_merge_file_history(full_table_name, history_schema, spark, dst_table_name=None):
     """Create or update a file ingestion history table combining lineage and transaction details.
+
+    Parameters
+    ----------
+    full_table_name : str
+        Fully qualified source table name used to read ``DESCRIBE HISTORY``.
+    history_schema : str
+        Schema where the history table will be stored.
+    spark : SparkSession
+    dst_table_name : str, optional
+        Fully qualified destination table name. When ``None`` the name is
+        derived from ``full_table_name`` and ``history_schema`` with
+        ``"_file_ingestion_history"`` appended.
 
     Each new row includes an ``ingest_time`` column with the timestamp when the
     record was added to the history table.
     """
 
     catalog, schema, table = full_table_name.split(".")
-    ingestion_table_name = f"{catalog}.{history_schema}.{table}_file_ingestion_history"
+    if dst_table_name:
+        ingestion_table_name = dst_table_name
+    else:
+        ingestion_table_name = f"{catalog}.{history_schema}.{table}_file_ingestion_history"
     if spark.catalog.tableExists(ingestion_table_name):
         last_version = (
             spark.table(ingestion_table_name)
@@ -143,8 +158,15 @@ def history_pipeline(settings, spark):
         return
 
     catalog = full_table.split(".")[0]
+    dst_history_table = settings.get("dst_table_name")
+    if not dst_history_table:
+        base = full_table.split(".")[-1]
+        dst_history_table = f"{catalog}.{history_schema}.{base}_file_ingestion_history"
+        print(
+            f"\tWARNING: dst_table_name not provided; defaulting to {dst_history_table}"
+        )
     if schema_exists(catalog, history_schema, spark):
-        build_and_merge_file_history(full_table, history_schema, spark)
+        build_and_merge_file_history(full_table, history_schema, spark, dst_history_table)
     else:
         print(f"Skipping history build: schema {catalog}.{history_schema} not found")
 
