@@ -13,6 +13,7 @@ For documentation, see [here](https://github.com/bryanlharris/Documentation).
 * [docs/job_settings.md](docs/job_settings.md) - Details about preparing configuration for each task.
 * [docs/custom.md](docs/custom.md) - Creating and using custom transforms.
 * [docs/history.md](docs/history.md) - Notebook for building file ingestion history.
+* [docs/requirements.md](docs/requirements.md) - Overview of project requirements and capabilities.
 * [docs/functions/config.md](docs/functions/config.md) - Constants shared across notebooks.
 * [docs/functions/utility.md](docs/functions/utility.md) - Utility helper functions.
 * [docs/functions/read.md](docs/functions/read.md) - Functions that read data sources.
