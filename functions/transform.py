@@ -298,6 +298,9 @@ def sample_table(df, settings, spark):
     sample_type = str(settings.get("sample_type", "random")).lower()
     fraction = float(settings.get("sample_fraction", 0.01))
 
+    if "_rescued_data" in df.columns:
+        df = df.drop("_rescued_data")
+
     if sample_type == "deterministic":
         modulus = int(settings.get("hash_modulus", 1000000))
         threshold = int(fraction * modulus)
