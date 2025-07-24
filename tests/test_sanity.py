@@ -66,27 +66,6 @@ def test_validate_settings_runs_s3_validation(capsys, monkeypatch):
     assert config.S3_ROOT_UTILITY.endswith('/')
 
 
-def test_warn_history_dst_table_names(capsys, monkeypatch):
-    path = pathlib.Path('dummy.json')
-    dummy_root = types.SimpleNamespace(glob=lambda pattern: [path] if 'bronze_history' in pattern else [])
-    monkeypatch.setattr(sanity, 'PROJECT_ROOT', dummy_root)
-
-    import builtins, io, json
-
-    def fake_open(p, *a, **k):
-        if p == path:
-            return io.StringIO(json.dumps({'full_table_name': 'cat.sch.tbl'}))
-        return builtins.open(p, *a, **k)
-
-    monkeypatch.setattr(builtins, 'open', fake_open)
-
-    sanity.warn_history_dst_table_names()
-
-    out = capsys.readouterr().out
-    assert 'dummy.json' in out
-    assert 'cat.sch.tbl_history' in out
-
-
 def test_initialize_schemas_warns_for_missing_history_schema(capsys, monkeypatch):
     path = 'dummy.json'
     monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({'tbl': path}, {}, {}, {}))

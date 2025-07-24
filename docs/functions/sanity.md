@@ -14,8 +14,7 @@ Ensure each settings file contains the required keys for its layer.
 Extra requirements are enforced for certain write functions. Raises an
 exception when any file fails validation. When settings are valid it also
 calls `validate_s3_roots` to warn about missing trailing slashes in the
-S3 root constants and `warn_history_dst_table_names` to note when history
-tables rely on the default naming convention.
+S3 root constants.
 
 ## `initialize_empty_tables`
 
@@ -37,9 +36,3 @@ the other layers so empty tables can be initialized.
 Ensure ``S3_ROOT_LANDING`` and ``S3_ROOT_UTILITY`` include a trailing
 ``/``. Missing slashes are appended and a warning is printed so the
 values can be updated in ``functions.config``.
-
-## `warn_history_dst_table_names`
-
-Scan ``layer_*_bronze_history`` for settings that do not define
-``dst_table_name``. A warning is printed for each file and the default table
-name `<full_table_name>_history` is shown.

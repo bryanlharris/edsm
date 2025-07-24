@@ -14,8 +14,7 @@ tracked version. Each row stores the file path together with the full
 transaction details from `DESCRIBE HISTORY` plus an ``ingest_time`` column
 recording when the row was inserted. A hash of ``file_path``, ``table_name``,
 ``timestamp`` and ``ingest_time`` is stored in ``row_hash`` so duplicate rows are
-ignored on merge. Pass ``dst_table_name`` to override the destination table name;
-otherwise the name is derived from ``full_table_name`` and ``history_schema``.
+ignored on merge.
 This prevents duplicates if the Delta table version is reset (for example after
 cloning). Column types are preserved so struct and map fields remain intact.
 Versions that cannot be read because a referenced file is missing are skipped.
