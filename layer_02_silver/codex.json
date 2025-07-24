@@ -1,32 +1,27 @@
 {
-    "simple_settings": "true",
-    "job_type": "silver_standard_batch",
-    "src_table_name": "edsm.bronze.codex",
-    "dst_table_name": "edsm.silver.codex",
-    "requires": [
-        "systemswithcoordinates",
-        "stations",
-        "powerplay"
-    ],
-    "business_key": [
-        "name",
-        "region",
-        "systemId",
-        "systemId64",
-        "systemName",
-        "type"
-    ],
-    "surrogate_key": [
-        "name",
-        "region",
-        "systemId",
-        "systemId64",
-        "systemName",
-        "type"
-    ],
-    "data_type_map": {
-        "date": "timestamp"
-    },
-    "ingest_time_column": "derived_ingest_time",
-    "dqx_checks": []
+  "simple_settings": "true",
+  "job_type": "silver_standard_batch",
+  "src_table_name": "edsm.bronze.codex",
+  "dst_table_name": "edsm.silver.codex",
+  "business_key": [
+    "name",
+    "region",
+    "systemId",
+    "systemId64",
+    "systemName",
+    "type"
+  ],
+  "surrogate_key": [
+    "name",
+    "region",
+    "systemId",
+    "systemId64",
+    "systemName",
+    "type"
+  ],
+  "data_type_map": {
+    "date": "timestamp"
+  },
+  "ingest_time_column": "derived_ingest_time",
+  "dqx_checks": []
 }

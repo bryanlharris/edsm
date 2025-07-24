@@ -1,35 +1,34 @@
 {
-    "simple_settings": "true",
-    "job_type": "silver_scd2_streaming",
-    "src_table_name": "edsm.bronze.stations",
-    "dst_table_name": "edsm.silver.stations",
-    "readStreamOptions": {},
-    "requires": "powerplay",
-    "business_key": [
-        "id",
-        "body",
-        "systemId"
-    ],
-    "surrogate_key": [
-        "allegiance",
-        "commodities",
-        "controllingFaction",
-        "economy",
-        "government",
-        "haveMarket",
-        "haveOutfitting",
-        "haveShipyard",
-        "otherServices",
-        "outfitting",
-        "secondEconomy",
-        "ships",
-        "type"
-    ],
-    "use_row_hash": "true",
-    "row_hash_col": "row_hash",
-    "data_type_map": {
-        "date": "timestamp"
-    },
-    "ingest_time_column": "derived_ingest_time",
-    "dqx_checks": []
+  "simple_settings": "true",
+  "job_type": "silver_scd2_streaming",
+  "src_table_name": "edsm.bronze.stations",
+  "dst_table_name": "edsm.silver.stations",
+  "readStreamOptions": {},
+  "business_key": [
+    "id",
+    "body",
+    "systemId"
+  ],
+  "surrogate_key": [
+    "allegiance",
+    "commodities",
+    "controllingFaction",
+    "economy",
+    "government",
+    "haveMarket",
+    "haveOutfitting",
+    "haveShipyard",
+    "otherServices",
+    "outfitting",
+    "secondEconomy",
+    "ships",
+    "type"
+  ],
+  "use_row_hash": "true",
+  "row_hash_col": "row_hash",
+  "data_type_map": {
+    "date": "timestamp"
+  },
+  "ingest_time_column": "derived_ingest_time",
+  "dqx_checks": []
 }

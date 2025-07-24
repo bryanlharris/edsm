@@ -7,10 +7,7 @@ For bronze and gold tables every file is loaded and the following data is writte
 - `table` – the table name derived from the file name
 - `history` – dictionary with `build_history`, `history_schema` and `full_table_name`
 
-Silver files are divided into parallel and sequential lists based on the presence of a `requires` field.
-
-- Tables **without** `requires` populate `silver_parallel`.
-- Tables **with** `requires` populate `silver_sequential` after sorting by dependency via `functions.utility.sort_by_dependency`.
+Silver files are loaded the same way and added to `job_settings['silver']`.
 
 Files in `layer_*_silver_samples` configure sampling jobs. Each file is loaded
 like the bronze and gold layers and added to `job_settings['silver_samples']`.
