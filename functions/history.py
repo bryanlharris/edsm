@@ -3,14 +3,18 @@ from .transform import add_row_hash
 from pyspark.sql.functions import col, lit, current_timestamp
 
 def describe_and_filter_history(full_table_name, spark):
-    """Return ordered versions produced by streaming updates, writes, or merges."""
+    """Return ordered versions produced by tracked Delta operations."""
 
     hist = spark.sql(f"describe history {full_table_name}")
     version_rows = (
         hist.filter(
             (col("operation") == "STREAMING UPDATE")
+            | (col("operation") == "STREAMING MERGE")
             | (col("operation") == "MERGE")
             | (col("operation") == "WRITE")
+            | (col("operation") == "UPDATE")
+            | (col("operation") == "DELETE")
+            | (col("operation") == "RESTORE")
         )
         .select("version")
         .distinct()

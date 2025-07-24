@@ -4,7 +4,8 @@ Utilities for capturing Delta transaction details and file lineage.
 
 ## `describe_and_filter_history`
 
-Return a sorted list of Delta versions that were produced by `STREAMING UPDATE`, `WRITE` or `MERGE` operations.
+Return a sorted list of Delta versions that were produced by `STREAMING UPDATE`,
+`STREAMING MERGE`, `MERGE`, `WRITE`, `UPDATE`, `DELETE` or `RESTORE` operations.
 
 ## `build_and_merge_file_history`
 
