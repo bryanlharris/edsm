@@ -2,11 +2,6 @@ resources:
   jobs:
     edsm:
       name: edsm
-      trigger:
-        pause_status: PAUSED
-        file_arrival:
-          url: /Volumes/edsm/bronze/landing/
-          min_time_between_triggers_seconds: 0
       tasks:
         - task_key: downloader
           notebook_task:
@@ -32,22 +27,6 @@ resources:
               task_key: bronze
               notebook_task:
                 notebook_path: /Workspace/Users/bryanlharris@me.com/edsm/03_ingest
-                base_parameters:
-                  job_settings: "{{input}}"
-                  color: bronze
-                source: WORKSPACE
-              min_retry_interval_millis: 900000
-              disable_auto_optimization: true
-        - task_key: history_loop
-          depends_on:
-            - task_key: bronze_loop
-          for_each_task:
-            inputs: "{{tasks.job_settings.values.bronze}}"
-            concurrency: 8
-            task:
-              task_key: history
-              notebook_task:
-                notebook_path: /Workspace/Users/bryanlharris@me.com/edsm/04_history
                 base_parameters:
                   job_settings: "{{input}}"
                   color: bronze
@@ -99,6 +78,22 @@ resources:
                 base_parameters:
                   job_settings: "{{input}}"
                   color: gold
+                source: WORKSPACE
+              min_retry_interval_millis: 900000
+              disable_auto_optimization: true
+        - task_key: silver_samples_loop
+          depends_on:
+            - task_key: silver_sequential_loop
+          for_each_task:
+            inputs: "{{tasks.job_settings.values.silver_samples}}"
+            concurrency: 10
+            task:
+              task_key: silver_samples
+              notebook_task:
+                notebook_path: /Workspace/Users/bryanlharris@me.com/edsm/03_ingest
+                base_parameters:
+                  job_settings: "{{input}}"
+                  color: silver_samples
                 source: WORKSPACE
               min_retry_interval_millis: 900000
               disable_auto_optimization: true
