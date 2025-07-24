@@ -55,10 +55,18 @@ transform = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(transform)
 
 class DummyDF:
-    def __init__(self):
+    def __init__(self, columns=None):
         self.wheres = 0
+        self.columns = columns or []
+        self.dropped = []
+
     def where(self, expr):
         self.wheres += 1
+        return self
+
+    def drop(self, *cols):
+        self.dropped.extend(cols)
+        self.columns = [c for c in self.columns if c not in cols]
         return self
 
 class DummySpark:
@@ -106,6 +114,19 @@ class SimpleSampleTests(unittest.TestCase):
         self.assertEqual(result.wheres, 0)
         self.assertIsNone(spark.query)
         self.assertNotIn('modulus', captured)
+
+    def test_drops_rescued_data_column(self):
+        spark = DummySpark()
+        df = DummyDF(columns=['id', '_rescued_data'])
+        settings = {
+            'sample_type': 'simple',
+            'sample_id_col': 'id',
+            'sample_size': '1',
+            'src_table_name': 'tbl'
+        }
+        result = transform.sample_table(df, settings, spark=spark)
+        self.assertIs(result, df)
+        self.assertIn('_rescued_data', df.dropped)
 
 if __name__ == '__main__':
     unittest.main()
