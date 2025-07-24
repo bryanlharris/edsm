@@ -8,7 +8,9 @@
         "cloudFiles.format": "json",
         "encoding": "utf-8",
         "pathGlobFilter": "systemsWithCoordinates7days.json",
-        "multiline": "false"
+        "multiline": "false",
+        "cloudFiles.backfillInterval": "1 day",
+        "cloudFiles.allowOverwrites": "true"
     },
     "file_schema": {
         "fields": [
