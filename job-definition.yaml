@@ -33,30 +33,30 @@ resources:
                 source: WORKSPACE
               min_retry_interval_millis: 900000
               disable_auto_optimization: true
-        - task_key: silver_parallel_loop
+        - task_key: bronze_history_loop
           depends_on:
             - task_key: bronze_loop
           for_each_task:
-            inputs: "{{tasks.job_settings.values.silver_parallel}}"
+            inputs: "{{tasks.job_settings.values.bronze_history}}"
             concurrency: 8
             task:
-              task_key: silver_parallel
+              task_key: bronze_history
               notebook_task:
                 notebook_path: /Workspace/Users/bryanlharris@me.com/edsm/03_ingest
                 base_parameters:
                   job_settings: "{{input}}"
-                  color: silver
+                  color: bronze_history
                 source: WORKSPACE
               min_retry_interval_millis: 900000
               disable_auto_optimization: true
-        - task_key: silver_sequential_loop
+        - task_key: silver_loop
           depends_on:
-            - task_key: silver_parallel_loop
+            - task_key: bronze_loop
           for_each_task:
-            inputs: "{{tasks.job_settings.values.silver_sequential}}"
-            concurrency: 1
+            inputs: "{{tasks.job_settings.values.silver}}"
+            concurrency: 8
             task:
-              task_key: silver_sequential
+              task_key: silver
               notebook_task:
                 notebook_path: /Workspace/Users/bryanlharris@me.com/edsm/03_ingest
                 base_parameters:
@@ -67,7 +67,7 @@ resources:
               disable_auto_optimization: true
         - task_key: gold_loop
           depends_on:
-            - task_key: silver_sequential_loop
+            - task_key: silver_loop
           for_each_task:
             inputs: "{{tasks.job_settings.values.gold}}"
             concurrency: 8
@@ -83,7 +83,7 @@ resources:
               disable_auto_optimization: true
         - task_key: silver_samples_loop
           depends_on:
-            - task_key: silver_sequential_loop
+            - task_key: silver_loop
           for_each_task:
             inputs: "{{tasks.job_settings.values.silver_samples}}"
             concurrency: 10
