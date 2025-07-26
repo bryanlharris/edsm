@@ -6,23 +6,13 @@ import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
-# Prepare dummy pyspark modules before importing history
-pyspark = types.ModuleType('pyspark')
-sql = types.ModuleType('pyspark.sql')
-types_mod = types.ModuleType('pyspark.sql.types')
-func_mod = types.ModuleType('pyspark.sql.functions')
-pyspark.sql = sql
-sql.types = types_mod
-sql.functions = func_mod
+func_mod = sys.modules['pyspark.sql.functions']
+types_mod = sys.modules['pyspark.sql.types']
 func_mod.col = lambda x: None
 func_mod.lit = lambda x: None
 func_mod.expr = lambda x: None
 func_mod.current_timestamp = lambda: None
 types_mod.StructType = type('StructType', (), {})
-sys.modules['pyspark'] = pyspark
-sys.modules['pyspark.sql'] = sql
-sys.modules['pyspark.sql.functions'] = func_mod
-sys.modules['pyspark.sql.types'] = types_mod
 
 # Provide an empty functions package to satisfy relative imports
 pkg_path = pathlib.Path(__file__).resolve().parents[1] / 'functions'

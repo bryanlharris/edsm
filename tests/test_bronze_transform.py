@@ -5,20 +5,9 @@ from unittest import mock
 import importlib.util
 import unittest
 
-# Create minimal fake pyspark modules before importing transform
-pyspark = types.ModuleType('pyspark')
-sql = types.ModuleType('pyspark.sql')
-types_mod = types.ModuleType('pyspark.sql.types')
-func_mod = types.ModuleType('pyspark.sql.functions')
-window_mod = types.ModuleType('pyspark.sql.window')
-sql.types = types_mod
-sql.functions = func_mod
-pyspark.sql = sql
-sys.modules['pyspark'] = pyspark
-sys.modules['pyspark.sql'] = sql
-sys.modules['pyspark.sql.types'] = types_mod
-sys.modules['pyspark.sql.functions'] = func_mod
-sys.modules['pyspark.sql.window'] = window_mod
+types_mod = sys.modules['pyspark.sql.types']
+func_mod = sys.modules['pyspark.sql.functions']
+window_mod = sys.modules['pyspark.sql.window']
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 

@@ -2,15 +2,7 @@ import sys
 import types
 import pathlib
 
-# Stub minimal pyspark modules so functions can be imported without pyspark
-pyspark = types.ModuleType('pyspark')
-sql = types.ModuleType('pyspark.sql')
-types_mod = types.ModuleType('pyspark.sql.types')
-sql.types = types_mod
-pyspark.sql = sql
-sys.modules.setdefault('pyspark', pyspark)
-sys.modules.setdefault('pyspark.sql', sql)
-sys.modules.setdefault('pyspark.sql.types', types_mod)
+types_mod = sys.modules['pyspark.sql.types']
 types_mod.StructType = type('StructType', (), {})
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
