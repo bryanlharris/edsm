@@ -6,16 +6,8 @@ import pathlib
 import sys
 import importlib.util
 
-# Stub minimal pyspark modules required by functions.utility
-pyspark = types.ModuleType('pyspark')
-sql = types.ModuleType('pyspark.sql')
-types_mod = types.ModuleType('pyspark.sql.types')
-pyspark.sql = sql
-sql.types = types_mod
+types_mod = sys.modules['pyspark.sql.types']
 types_mod.StructType = type('StructType', (), {})
-sys.modules['pyspark'] = pyspark
-sys.modules['pyspark.sql'] = sql
-sys.modules['pyspark.sql.types'] = types_mod
 
 # Create minimal functions package to satisfy relative imports in utility
 pkg_path = pathlib.Path(__file__).resolve().parents[1] / 'functions'

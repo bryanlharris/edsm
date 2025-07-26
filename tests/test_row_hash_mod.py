@@ -4,18 +4,8 @@ import pathlib
 import importlib.util
 import unittest
 
-# Stub pyspark modules
-pyspark = types.ModuleType('pyspark')
-sql = types.ModuleType('pyspark.sql')
-func_mod = types.ModuleType('pyspark.sql.functions')
-types_mod = types.ModuleType('pyspark.sql.types')
-sql.functions = func_mod
-sql.types = types_mod
-pyspark.sql = sql
-sys.modules['pyspark'] = pyspark
-sys.modules['pyspark.sql'] = sql
-sys.modules['pyspark.sql.functions'] = func_mod
-sys.modules['pyspark.sql.types'] = types_mod
+func_mod = sys.modules['pyspark.sql.functions']
+types_mod = sys.modules['pyspark.sql.types']
 
 # Provide placeholder classes for required pyspark types
 for name in [

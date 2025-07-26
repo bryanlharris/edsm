@@ -4,20 +4,6 @@ import pathlib
 import importlib.util
 import unittest
 
-# Stub minimal pyspark modules so functions.utility can be imported
-pyspark = types.ModuleType('pyspark')
-sql = types.ModuleType('pyspark.sql')
-types_mod = types.ModuleType('pyspark.sql.types')
-func_mod = types.ModuleType('pyspark.sql.functions')
-types_mod.StructType = type('StructType', (), {})
-sql.types = types_mod
-sql.functions = func_mod
-pyspark.sql = sql
-sys.modules.setdefault('pyspark', pyspark)
-sys.modules.setdefault('pyspark.sql', sql)
-sys.modules.setdefault('pyspark.sql.types', types_mod)
-sys.modules.setdefault('pyspark.sql.functions', func_mod)
-
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 # Provide a minimal ``functions`` package to satisfy relative imports

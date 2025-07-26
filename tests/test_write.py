@@ -6,16 +6,8 @@ import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
-# Prepare dummy pyspark modules
-pyspark = types.ModuleType('pyspark')
-sql = types.ModuleType('pyspark.sql')
-functions_mod = types.ModuleType('pyspark.sql.functions')
-window_mod = types.ModuleType('pyspark.sql.window')
-
-sys.modules['pyspark'] = pyspark
-sys.modules['pyspark.sql'] = sql
-sys.modules['pyspark.sql.functions'] = functions_mod
-sys.modules['pyspark.sql.window'] = window_mod
+functions_mod = sys.modules['pyspark.sql.functions']
+window_mod = sys.modules['pyspark.sql.window']
 
 # Stub out dependent functions package modules
 utility_mod = types.ModuleType('functions.utility')
