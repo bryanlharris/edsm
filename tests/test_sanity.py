@@ -104,3 +104,23 @@ def test_initialize_schemas_history_schema_exists(capsys, monkeypatch):
     out = capsys.readouterr().out
     assert 'WARNING' not in out
     assert 'Initialize schemas and volumes check passed.' in out
+
+
+def test_validate_settings_skips_pipeline_function(capsys, monkeypatch):
+    path = 'dummy.json'
+    monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({}, { 'tbl': path }, {}, {}))
+
+    import builtins, io, json
+
+    def fake_open(p, *a, **k):
+        if p == path:
+            return io.StringIO(json.dumps({'pipeline_function': 'custom.pipeline'}))
+        return builtins.open(p, *a, **k)
+
+    monkeypatch.setattr(builtins, 'open', fake_open)
+    monkeypatch.setattr(config, 'S3_ROOT_LANDING', 's3://landing/')
+    monkeypatch.setattr(config, 'S3_ROOT_UTILITY', 's3://utility/')
+
+    sanity.validate_settings(DummyDbutils())
+    out = capsys.readouterr().out
+    assert 'Sanity check: Validate settings check passed.' in out

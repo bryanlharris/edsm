@@ -108,8 +108,11 @@ def validate_settings(dbutils):
         ("gold", gold_files),
     ]:
         for tbl, path in files.items():
-            settings=json.loads(open(path).read())
+            settings = json.loads(open(path).read())
             settings = apply_job_type(settings)
+            # Skip validation when a pipeline function is used
+            if "pipeline_function" in settings:
+                continue
             for k in required_keys[layer]:
                 if k not in settings:
                     errs.append(f"{path} missing {k}")
@@ -117,7 +120,9 @@ def validate_settings(dbutils):
             if write_fn in write_key_requirements:
                 for req_key in write_key_requirements[write_fn]:
                     if req_key not in settings:
-                        errs.append(f"{path} missing {req_key} for write_function {write_fn}")
+                        errs.append(
+                            f"{path} missing {req_key} for write_function {write_fn}"
+                        )
 
     if errs:
         raise RuntimeError("Sanity check failed: "+", ".join(errs))
