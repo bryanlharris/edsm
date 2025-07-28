@@ -242,39 +242,39 @@ def cast_data_types(df, data_type_map=None):
 
     if not data_type_map:
         return df
-    
+
     data_type_map   = {c: data_type_map[c] for c in df.columns if c in data_type_map}
+
+    type_casters = {
+        "integer": lambda c, dt: col(c).cast(dt).alias(c),
+        "double": lambda c, dt: col(c).cast(dt).alias(c),
+        "short": lambda c, dt: col(c).cast(dt).alias(c),
+        "float": lambda c, dt: col(c).cast(dt).alias(c),
+        "decimal": lambda c, dt: regexp_replace(col(c), "[$,]", "").cast(dt).alias(c),
+        "numeric": lambda c, dt: regexp_replace(col(c), "[$,]", "").cast(dt).alias(c),
+        "date": lambda c, dt: when(col(c).rlike(r"\d{1,2}/\d{1,2}/\d{4}"), to_date(col(c), "M/d/yyyy"))
+                            .when(col(c).rlike(r"\d{1,2}-\d{1,2}-\d{4}"), to_date(col(c), "d-M-yyyy"))
+                            .when(col(c).rlike(r"\d{4}-\d{1,2}-\d{1,2}"), to_date(col(c), "yyyy-M-d"))
+                            .alias(c),
+        "timestamp": lambda c, dt: when(col(c).rlike(r"\d{1,2}/\d{1,2}/\d{4}"), to_date(col(c), "M/d/yyyy"))
+                               .when(col(c).rlike(r"\d{1,2}-\d{1,2}-\d{4}"), to_date(col(c), "d-M-yyyy"))
+                               .otherwise(to_timestamp(col(c))).alias(c),
+    }
 
     selected_columns = []
     for column_name in df.columns:
         if column_name in data_type_map:
             data_type = data_type_map[column_name]
-            if data_type in ["integer", "double", "short", "float"]:
-                selected_columns.append(col(column_name).cast(data_type).alias(column_name))
-            elif data_type.startswith(("decimal", "numeric")):
-                # Replace '$' and ',' so $4,000 -> 4000
-                selected_columns.append(regexp_replace(col(column_name), '[$,]', '').cast(data_type).alias(column_name))
-            elif data_type == "date":
-                selected_columns.append(
-                    when(col(column_name).rlike(r'\d{1,2}/\d{1,2}/\d{4}'), to_date(col(column_name), 'M/d/yyyy'))
-                    .when(col(column_name).rlike(r'\d{1,2}-\d{1,2}-\d{4}'), to_date(col(column_name), 'd-M-yyyy'))
-                    .when(col(column_name).rlike(r'\d{4}-\d{1,2}-\d{1,2}'), to_date(col(column_name), 'yyyy-M-d'))
-                    .alias(column_name)
-                )
-            elif data_type == "timestamp":
-                selected_columns.append(
-                    when(col(column_name).rlike(r'\d{1,2}/\d{1,2}/\d{4}'), to_date(col(column_name), 'M/d/yyyy'))
-                    .when(col(column_name).rlike(r'\d{1,2}-\d{1,2}-\d{4}'), to_date(col(column_name), 'd-M-yyyy'))
-                    .otherwise(to_timestamp(col(column_name)))
-                    .alias(column_name)
-                )
+            caster = None
+            for key, func in type_casters.items():
+                if data_type == key or data_type.startswith(key):
+                    caster = func
+                    break
+            if caster:
+                selected_columns.append(caster(column_name, data_type))
             else:
-                # If not one of the above data types, append it without changing
-                # Execution would reach this point if the data_type from the column_map was not recognized
                 selected_columns.append(col(column_name))
         else:
-            # If column_name was not in data_type_map, just append it without changing
-            # Execution would reach this point if the column was not in column_map
             selected_columns.append(col(column_name))
 
     return df.select(selected_columns)
