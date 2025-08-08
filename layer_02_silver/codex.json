@@ -23,5 +23,8 @@
     "date": "timestamp"
   },
   "ingest_time_column": "derived_ingest_time",
+  "requires": [
+    "systemsWithCoordinates"
+  ],
   "dqx_checks": []
 }

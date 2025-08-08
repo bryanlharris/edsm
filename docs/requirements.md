@@ -4,7 +4,7 @@ This project implements a full Databricks pipeline for ingesting the Elite Dange
 
 - **Ingest raw data with Auto Loader.** Bronze tables read the EDSM export files using Databricks Auto Loader and write Delta tables. Settings files under `layer_01_bronze` normally use the `bronze_standard_streaming` job type.
 - **Refine bronze data into silver tables.** Silver configuration files define job types such as `silver_standard_streaming` or `silver_scd2_batch` to transform and merge data into curated Delta tables.
-- **Simplified silver processing.** All silver tables run independently without a `requires` field.
+- **Simplified silver processing.** Silver tables run independently unless they declare upstream dependencies through an optional `requires` field.
 - **Run ingestion notebooks per table.** `03_ingest.ipynb` executes the selected pipeline, prints settings, runs any DQX checks and creates bad record tables when needed.
 - **Track file ingestion history.** `04_history.ipynb` builds `<table>_file_ingestion_history` tables storing Delta transaction details and file paths.
 - **Organize tasks with a job definition.** `job-definition.yaml` triggers the workflow when new files arrive and coordinates downloader, bronze, history, silver and gold loops.
