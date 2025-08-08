@@ -2,6 +2,8 @@
 
 Silver tables refine the cleaned bronze data into curated Delta tables. Each configuration file under `layer_02_silver` describes one table and usually sets `simple_settings` to `true` with an appropriate `job_type`.
 
+See [table_dependencies](table_dependencies.md) for how silver configs declare dependencies and how the parallel and sequential loops process them.
+
 ## Standard job types
 
 These are the possible values for `job_type` when `simple_settings` is set to `true` in the json file.
