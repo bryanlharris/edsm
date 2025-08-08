@@ -10,6 +10,7 @@ from functions.utility import (
     catalog_exists,
     schema_exists,
 )
+from functions.dependencies import sort_by_dependency
 from functions import config
 PROJECT_ROOT = config.PROJECT_ROOT
 
@@ -64,6 +65,8 @@ def validate_settings(dbutils):
     ## Check that all json settings files have the minimum required keys AKA functions before proceeding
     bronze_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="bronze")
     silver_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="silver")
+    silver_parallel = dbutils.jobs.taskValues.get(taskKey="job_settings", key="silver_parallel") or []
+    silver_sequential = dbutils.jobs.taskValues.get(taskKey="job_settings", key="silver_sequential") or []
     gold_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="gold")
 
     bronze_files, silver_files, silver_sample_files, gold_files = _discover_settings_files()
@@ -123,6 +126,20 @@ def validate_settings(dbutils):
                         errs.append(
                             f"{path} missing {req_key} for write_function {write_fn}"
                         )
+
+    # Validate silver table dependencies
+    silver_defined = set(silver_files.keys())
+    for item in silver_sequential:
+        tbl = item.get("table")
+        for dep in item.get("requires", []):
+            if dep not in silver_defined:
+                errs.append(
+                    f"Silver table {tbl} requires missing silver table {dep}"
+                )
+    try:
+        sort_by_dependency(silver_sequential)
+    except ValueError as exc:
+        errs.append(str(exc))
 
     if errs:
         raise RuntimeError("Sanity check failed: "+", ".join(errs))
