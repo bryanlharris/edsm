@@ -14,7 +14,9 @@ Ensure each settings file contains the required keys for its layer.
 Jobs that define a `pipeline_function` skip these checks so custom
 pipelines such as the history job can omit the standard
 `read_function`, `transform_function` and `write_function` keys.
-Extra requirements are enforced for certain write functions. Raises an
+Extra requirements are enforced for certain write functions. Silver table
+dependencies are validated so each `requires` entry refers to an existing
+table and cycles are reported using `sort_by_dependency`. Raises an
 exception when any file fails validation. When settings are valid it also
 calls `validate_s3_roots` to warn about missing trailing slashes in the
 S3 root constants.

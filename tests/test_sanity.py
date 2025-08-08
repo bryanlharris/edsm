@@ -1,6 +1,7 @@
 import sys
 import types
 import pathlib
+import pytest
 
 types_mod = sys.modules['pyspark.sql.types']
 types_mod.StructType = type('StructType', (), {})
@@ -33,15 +34,17 @@ def test_append_slash_and_warn(capsys, monkeypatch):
 class DummyDbutils:
     class Jobs:
         class TaskValues:
-            @staticmethod
-            def get(taskKey=None, key=None):
-                return None
+            def __init__(self, values=None):
+                self.values = values or {}
 
-        def __init__(self):
-            self.taskValues = self.TaskValues()
+            def get(self, taskKey=None, key=None):  # pragma: no cover - simple dict lookup
+                return self.values.get(key)
 
-    def __init__(self):
-        self.jobs = self.Jobs()
+        def __init__(self, values=None):
+            self.taskValues = self.TaskValues(values)
+
+    def __init__(self, values=None):
+        self.jobs = self.Jobs(values)
 
 
 def test_validate_settings_runs_s3_validation(capsys, monkeypatch):
@@ -124,3 +127,77 @@ def test_validate_settings_skips_pipeline_function(capsys, monkeypatch):
     sanity.validate_settings(DummyDbutils())
     out = capsys.readouterr().out
     assert 'Sanity check: Validate settings check passed.' in out
+
+
+def test_validate_settings_missing_dependency(monkeypatch):
+    paths = {'a': 'a.json', 'b': 'b.json'}
+    monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({}, paths, {}, {}))
+
+    import builtins, io, json
+
+    def fake_open(p, *a, **k):
+        if p == 'a.json':
+            return io.StringIO(json.dumps({
+                'read_function': 'r',
+                'transform_function': 't',
+                'write_function': 'w',
+                'src_table_name': 's',
+                'dst_table_name': 'a'
+            }))
+        if p == 'b.json':
+            return io.StringIO(json.dumps({
+                'read_function': 'r',
+                'transform_function': 't',
+                'write_function': 'w',
+                'src_table_name': 'a',
+                'dst_table_name': 'b'
+            }))
+        return builtins.open(p, *a, **k)
+
+    monkeypatch.setattr(builtins, 'open', fake_open)
+    monkeypatch.setattr(config, 'S3_ROOT_LANDING', 's3://landing/')
+    monkeypatch.setattr(config, 'S3_ROOT_UTILITY', 's3://utility/')
+
+    dbutils = DummyDbutils({'silver_parallel': [], 'silver_sequential': [{'table': 'b', 'requires': ['missing']}]} )
+    with pytest.raises(RuntimeError) as exc:
+        sanity.validate_settings(dbutils)
+    assert 'requires missing silver table missing' in str(exc.value)
+
+
+def test_validate_settings_detects_cycle(monkeypatch):
+    paths = {'a': 'a.json', 'b': 'b.json'}
+    monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({}, paths, {}, {}))
+
+    import builtins, io, json
+
+    def fake_open(p, *a, **k):
+        if p == 'a.json':
+            return io.StringIO(json.dumps({
+                'read_function': 'r',
+                'transform_function': 't',
+                'write_function': 'w',
+                'src_table_name': 'b',
+                'dst_table_name': 'a'
+            }))
+        if p == 'b.json':
+            return io.StringIO(json.dumps({
+                'read_function': 'r',
+                'transform_function': 't',
+                'write_function': 'w',
+                'src_table_name': 'a',
+                'dst_table_name': 'b'
+            }))
+        return builtins.open(p, *a, **k)
+
+    monkeypatch.setattr(builtins, 'open', fake_open)
+    monkeypatch.setattr(config, 'S3_ROOT_LANDING', 's3://landing/')
+    monkeypatch.setattr(config, 'S3_ROOT_UTILITY', 's3://utility/')
+
+    deps = [
+        {'table': 'a', 'requires': ['b']},
+        {'table': 'b', 'requires': ['a']},
+    ]
+    dbutils = DummyDbutils({'silver_parallel': [], 'silver_sequential': deps})
+    with pytest.raises(RuntimeError) as exc:
+        sanity.validate_settings(dbutils)
+    assert 'Circular dependency detected' in str(exc.value)
