@@ -5,13 +5,24 @@ Follow this procedure to spin up a fresh pipeline based on the existing **edsm**
 ## 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd edsm
+git clone <repository-url> name
+cd name
 ```
 
-## 2. Archive Existing Layer Settings
+## 2. Upload to Databricks
 
-Each layer directory (`layer_01_bronze`, `layer_02_silver`, `layer_03_gold`, etc.) contains JSON settings files that describe the EDSM pipeline. To start a new pipeline, preserve the old files and begin with empty ones.
+This is the step where you can stop using git if you need to.
+
+```bash
+rsync -av --exclude='.git' name name1
+cd name1
+databricks -p dev auth login
+databricks -p dev workspace import-dir . /home/whoeveryouare@example.com/name1
+```
+
+## 3. Archive Existing Layer Settings
+
+Each layer directory (`layer_01_bronze`, `layer_02_silver`, `layer_03_gold`, etc.) contains JSON settings files that describe the EDSM pipeline. To start a new pipeline, preserve the old files and begin with empty ones. I like to do this from the web terminal.
 
 For every layer:
 
@@ -20,38 +31,39 @@ mkdir -p <layer>/archive
 mv <layer>/*.json <layer>/archive/
 ```
 
-Create new JSON settings in each layer to describe the tables for the new pipeline.
+## 4. Update Configuration
 
-## 3. Update Configuration
-
-Edit [`functions/config.py`](../../functions/config.py) to point to your own infrastructure.
+Edit [`functions/config.py`](../../functions/config.py) to point to your own infrastructure. Ensure the paths end with a trailing `/`.
 
 - `S3_ROOT_LANDING`
 - `S3_ROOT_UTILITY`
-- optionally `OBJECT_OWNER`
+- `OBJECT_OWNER`
 
-Ensure the paths end with a trailing `/`.
+Whatever you put for each S3 path will end up with `/<catalog>/<schema>/<landing|utility>/` at the end of it.
 
-## 4. Create a Databricks Job
+## 5. Create a Bronze JSON Table Config
 
-In the Databricks workspace, create a new job that orchestrates the notebooks for your pipeline.
+Go into the bronze folder, which should be empty, and see if you can create your own table json file. You can try using the get-schema.py utility from the databricks-utilities repo to get the file-schema, and fill in the rest.
+
+## 6. Create a Databricks Job
+
+In the Databricks workspace, create a new job that will eventually orchestrate the notebooks for your pipeline. For now, only create the job settings task. You can use the included YAML file for guidance, but I would recommend creating the job yourself for the practice.
 
 - Add a task pointing to `00_job_settings.ipynb` to generate job settings.
-- Add downstream tasks that run the ingestion notebooks (`03_ingest.ipynb` or similar) for each table and layer.
-- Configure "for each" task loops or dependent tasks as needed to process all tables.
 
-## 5. Run Job Settings Notebook
+## 7. Run the Job
 
 Execute `00_job_settings.ipynb` to generate the `job_settings` JSON for each table. Add new tables or modify the settings to fit your data.
 
-## 6. Commit and Push
+You should now see the sanity checking run, and it should create schemas, tables, and volumes for you and change the owner of all objects.
 
-Commit your new settings, configuration changes and any custom functions to your fork or repository.
+## 8. Populate More Job Tasks
 
-```bash
-git add .
-git commit -m "Add initial pipeline configuration"
-git push origin main
-```
+At this stage, if you've got your raw schema, your empty table created with the sanity check, and your volumes, go ahead and create the bronze loop. Again, use the included YAML for guidance.
 
-You now have a clean starting point for your own pipeline, with previous EDSM settings archived for reference.
+- Add downstream tasks that run the ingestion notebooks (`03_ingest.ipynb` or similar) for each table and layer.
+- Configure "for each" task loops or dependent tasks as needed to process all tables.
+
+## 9. End (for now)
+
+You now have a clean starting point for your own pipeline, with previous EDSM settings archived for reference. If you need history, silver, samples, or gold, you can use the YAML and archived examples from EDSM to figure things out from here.
