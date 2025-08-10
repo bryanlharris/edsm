@@ -34,6 +34,10 @@ converted into a `<dst_table_name>_bad_records` table using
 
 ## History tables
 
+This section is no longer true and needs to be updated. History is now built
+in a pipeline task in the layer_01_bronze_history folder. Need to update this
+later.
+
 Bronze jobs default to `build_history: true`.  When `history_schema` is
 provided, a `<table>_file_ingestion_history` table is maintained alongside the
 bronze table.  This table records every file that contributes to a given Delta

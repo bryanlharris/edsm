@@ -21,13 +21,6 @@ exception when any file fails validation. When settings are valid it also
 calls `validate_s3_roots` to warn about missing trailing slashes in the
 S3 root constants.
 
-## `initialize_empty_tables`
-
-Create empty Delta tables based on the configured transforms. Each table
-is built layer by layer starting from an empty DataFrame and written with
-`create_table_if_not_exists`. The read/transform/write chain cascades
-through bronze, silver, silver samples and gold layers.
-
 ## `initialize_schemas_and_volumes`
 
 Create catalogs, schemas and external volumes referenced by the settings.
@@ -35,6 +28,13 @@ History schemas are added when enabled. When a history schema does not exist a
 warning is emitted before the schema is created. An error is raised if multiple
 catalogs or schemas are discovered. Silver sample schemas are processed like
 the other layers so empty tables can be initialized.
+
+## `initialize_empty_tables`
+
+Create empty Delta tables based on the configured transforms. Each table
+is built layer by layer starting from an empty DataFrame and written with
+`create_table_if_not_exists`. The read/transform/write chain cascades
+through bronze, bronze history, silver, silver samples and gold layers.
 
 ## `validate_s3_roots`
 

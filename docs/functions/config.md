@@ -8,6 +8,20 @@ utility functions.
 The absolute path to the project root on the local filesystem.  Other
 modules reference this when loading files relative to the repository.
 
+## S3 roots
+
+``S3_ROOT_LANDING`` and ``S3_ROOT_UTILITY`` define the base S3 locations
+for external landing and utility volumes.
+Both values should include a trailing ``/``.  When omitted, it will be
+appended by ``sanity.validate_s3_roots`` but updating ``config.py`` is
+recommended.
+
+## Owner
+
+The sanity checker will set all objects to ``OBJECT_OWNER`` if they are not
+already. I can't remember if this works only for new objects or if it checks
+existing ones. I think it also checks existing ones.
+
 ## `JOB_TYPE_MAP`
 
 A dictionary mapping short ``job_type`` names to the functions that make
@@ -32,10 +46,4 @@ The provided job types are:
 - **gold_standard_batch** – batch reads silver data and writes a snapshot
   table.
 
-## S3 roots
 
-``S3_ROOT_LANDING`` and ``S3_ROOT_UTILITY`` define the base S3 locations
-for external landing and utility volumes.
-Both values should include a trailing ``/``.  When omitted, it will be
-appended by ``sanity.validate_s3_roots`` but updating ``config.py`` is
-recommended.

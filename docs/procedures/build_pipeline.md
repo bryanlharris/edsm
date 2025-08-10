@@ -36,26 +36,33 @@ Whatever you put for each S3 path will end up with `/<catalog>/<schema>/<landing
 
 ## 4. Create a Bronze JSON Table Config
 
-Go into the bronze folder, which should be empty, and see if you can create your own table json file. You can try using the get-schema.py utility from the databricks-utilities repo to get the file-schema, and fill in the rest.
+Go into the bronze folder, which should be empty, and see if you can create your own table json file. You can try using the get-schema.py utility from the databricks-utilities repo to get the file-schema, and fill in the rest. You can look into the archive or examples folders for ideas.
+
+Here are some other to look at for this step:
+
+- docs/bronze.md
+- docs/functions/config.md
+- docs/functions/read.md
+- docs/functions/sanity.md
 
 ## 5. Create a Databricks Job
 
-In the Databricks workspace, create a new job that will eventually orchestrate the notebooks for your pipeline. For now, only create the job settings task. You can use the included YAML file for guidance, but I would recommend creating the job yourself for the practice.
+In the Databricks workspace, create a new job. For now, only create the job settings task in the job. You can look at the included YAML file for guidance but essentially you just point your task at the job settings notebook and you should be good.
 
 - Add a task pointing to `00_job_settings.ipynb` to generate job settings.
 
 ## 6. Run the Job
 
-Execute `00_job_settings.ipynb` to generate the `job_settings` JSON for each table. Add new tables or modify the settings to fit your data.
+Execute `00_job_settings.ipynb`.
 
-You should now see the sanity checking run, and it should create schemas, tables, and volumes for you and change the owner of all objects.
+You should now see the sanity checking run. It should create schemas, tables, and volumes for you and should change the owner of all objects created.
 
 ## 7. Populate More Job Tasks
 
-At this stage, if you've got your raw schema, your empty table created with the sanity check, and your volumes, go ahead and create the bronze loop. Again, use the included YAML for guidance.
+At this stage, if you've got your raw schema, your empty table created with the sanity check, and your volumes, go ahead and create the bronze loop. Again, look at the included YAML for guidance.
 
-- Add downstream tasks that run the ingestion notebooks (`03_ingest.ipynb` or similar) for each table and layer.
-- Configure "for each" task loops or dependent tasks as needed to process all tables.
+- Include a variable ``job_settings`` that comes from ``{{input}}``.
+- Include a variable ``color`` set to the string "bronze".
 
 ## 8. End (for now)
 
