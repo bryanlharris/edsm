@@ -16,7 +16,7 @@ This is the step where you can stop using git if you need to and archive the exi
 ```bash
 rsync -av --exclude='.git' name name1
 cd name1
-for layer in layer_01_bronze layer_02_silver layer_03_gold; do
+for layer in layer_??_*; do
   mkdir -p "$layer/archive"
   mv "$layer"/*.json "$layer/archive/"
 done
