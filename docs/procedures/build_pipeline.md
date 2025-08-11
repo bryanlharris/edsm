@@ -62,7 +62,7 @@ You should now see the sanity checking run. It should create schemas, tables, an
 At this stage, if you've got your raw schema, your empty table created with the sanity check, and your volumes, go ahead and create the bronze loop. Again, look at the included YAML for guidance.
 
 - Include a variable ``job_settings`` that comes from ``{{input}}``.
-- Include a variable ``color`` set to the string "bronze".
+- Include a variable ``color`` set to the string "bronze" (do not put the double quotes).
 
 ## 8. End (for now)
 

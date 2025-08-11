@@ -2,8 +2,11 @@
 
 This repository contains notebooks and utilities for ingesting data from the Elite Dangerous Star Map (EDSM) nightly dumps.
 
-For documentation, see [here](https://github.com/bryanlharris/Documentation).
+For MS Word documentation, see [here](https://github.com/bryanlharris/Documentation). This could be easier to read but not as detailed.
 
+If you just want to get started building a job like this one, read the first doc.
+
+* [docs/procedures/build_pipeline.md](docs/procedures/build_pipeline.md) - Build a pipeline based on this EDSM pipeline.
 * [docs/bronze.md](docs/bronze.md) - Overview of the bronze layer.
 * [docs/silver.md](docs/silver.md) - Overview of how silver data is ingested, transformed and written.
 * [docs/table_dependencies.md](docs/table_dependencies.md) - Silver table dependencies and execution order.
