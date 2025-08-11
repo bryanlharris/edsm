@@ -128,11 +128,11 @@ def validate_settings(dbutils):
                         )
 
     # Validate silver table dependencies
-    silver_defined = set(silver_files.keys())
+    silver_defined = {name.lower() for name in silver_files.keys()}
     for item in silver_sequential:
         tbl = item.get("table")
         for dep in item.get("requires", []):
-            if dep not in silver_defined:
+            if dep.lower() not in silver_defined:
                 errs.append(
                     f"Silver table {tbl} requires missing silver table {dep}"
                 )
@@ -157,7 +157,7 @@ def initialize_empty_tables(spark):
     errs = []
     bronze_files, silver_files, silver_sample_files, gold_files = _discover_settings_files()
 
-    # Load all settings keyed by destination table name
+    # Load all settings keyed by normalized destination table name
     settings_map = {}
     for files in [bronze_files, silver_files, silver_sample_files, gold_files]:
         for path in files.values():
@@ -166,7 +166,7 @@ def initialize_empty_tables(spark):
             settings["_path"] = path  # retain for error messages
             dst = settings.get("dst_table_name")
             if dst:
-                settings_map[dst] = settings
+                settings_map[dst.lower()] = settings
 
     # Determine processing order based on src -> dst lineage
     ordered = sort_by_dependency(build_dependency_graph(settings_map.values()))

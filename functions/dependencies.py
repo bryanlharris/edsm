@@ -6,16 +6,24 @@ def sort_by_dependency(items: List[Dict[str, object]]) -> List[Dict[str, object]
     """Return items sorted so that dependencies appear before dependents.
 
     Each item should be a mapping with a ``table`` key and an optional
-    ``requires`` key listing dependencies. Dependencies that are not present
-    in ``items`` are ignored.
+    ``requires`` key listing dependencies. Table names are compared in a
+    case-insensitive manner by normalizing to lower case. Dependencies that
+    are not present in ``items`` are ignored.
 
     Raises
     ------
     ValueError
         If a circular dependency is detected among the provided tables.
     """
-    # Map table name to item for lookup
-    table_map: Dict[str, Dict[str, object]] = {item["table"]: item for item in items}
+    # Map normalized table name to item for lookup
+    table_map: Dict[str, Dict[str, object]] = {}
+    for item in items:
+        table = item["table"].lower()
+        norm_item = {**item, "table": table}
+        if "requires" in item:
+            norm_item["requires"] = [r.lower() for r in item.get("requires", [])]
+        table_map[table] = norm_item
+
     nodes: Set[str] = set(table_map)
 
     # Build dependency (edges) within provided nodes
@@ -65,13 +73,14 @@ def build_dependency_graph(settings: Iterable[Dict[str, object]]) -> List[Dict[s
     """
 
     table_map: Dict[str, Dict[str, object]] = {
-        s["dst_table_name"]: s for s in settings if s.get("dst_table_name")
+        s["dst_table_name"].lower(): s for s in settings if s.get("dst_table_name")
     }
 
     items: List[Dict[str, object]] = []
     for dst, cfg in table_map.items():
         src = cfg.get("src_table_name")
-        requires = [src] if src in table_map else []
+        src_norm = src.lower() if src else None
+        requires = [src_norm] if src_norm and src_norm in table_map else []
         items.append({"table": dst, "requires": requires})
 
     return items
