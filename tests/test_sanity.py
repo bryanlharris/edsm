@@ -164,6 +164,41 @@ def test_validate_settings_missing_dependency(monkeypatch):
     assert 'requires missing silver table missing' in str(exc.value)
 
 
+def test_validate_settings_case_mismatch(monkeypatch):
+    paths = {'a': 'a.json', 'b': 'b.json'}
+    monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({}, paths, {}, {}))
+
+    import builtins, io, json
+
+    def fake_open(p, *a, **k):
+        if p == 'a.json':
+            return io.StringIO(json.dumps({
+                'read_function': 'r',
+                'transform_function': 't',
+                'write_function': 'w',
+                'src_table_name': 's',
+                'dst_table_name': 'CAT.SCHEMA.TABLEA'
+            }))
+        if p == 'b.json':
+            return io.StringIO(json.dumps({
+                'read_function': 'r',
+                'transform_function': 't',
+                'write_function': 'w',
+                'src_table_name': 'cat.schema.tablea',
+                'dst_table_name': 'cat.schema.tableb'
+            }))
+        return builtins.open(p, *a, **k)
+
+    monkeypatch.setattr(builtins, 'open', fake_open)
+    monkeypatch.setattr(config, 'S3_ROOT_LANDING', 's3://landing/')
+    monkeypatch.setattr(config, 'S3_ROOT_UTILITY', 's3://utility/')
+
+    dbutils = DummyDbutils({'silver_parallel': [], 'silver_sequential': []})
+    with pytest.raises(RuntimeError) as exc:
+        sanity.validate_settings(dbutils)
+    assert 'ensure consistent casing' in str(exc.value)
+
+
 def test_validate_settings_detects_cycle(monkeypatch):
     paths = {'a': 'a.json', 'b': 'b.json'}
     monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({}, paths, {}, {}))
