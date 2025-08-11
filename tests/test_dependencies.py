@@ -12,7 +12,7 @@ functions_pkg = types.ModuleType('functions')
 functions_pkg.__path__ = [str(pkg_path)]
 sys.modules.setdefault('functions', functions_pkg)
 
-from functions.dependencies import sort_by_dependency
+from functions.dependencies import sort_by_dependency, build_dependency_graph
 
 
 def test_topological_sort():
@@ -32,3 +32,13 @@ def test_cycle_detection():
     ]
     with pytest.raises(ValueError):
         sort_by_dependency(items)
+
+
+def test_build_dependency_graph():
+    settings = [
+        {"dst_table_name": "a"},
+        {"src_table_name": "a", "dst_table_name": "b"},
+    ]
+    items = build_dependency_graph(settings)
+    result = sort_by_dependency(items)
+    assert [i["table"] for i in result] == ["a", "b"]

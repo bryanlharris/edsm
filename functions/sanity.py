@@ -10,7 +10,7 @@ from functions.utility import (
     catalog_exists,
     schema_exists,
 )
-from functions.dependencies import sort_by_dependency
+from functions.dependencies import sort_by_dependency, build_dependency_graph
 from functions import config
 PROJECT_ROOT = config.PROJECT_ROOT
 
@@ -157,60 +157,49 @@ def initialize_empty_tables(spark):
     errs = []
     bronze_files, silver_files, silver_sample_files, gold_files = _discover_settings_files()
 
-    all_tables = set(
-        list(bronze_files.keys())
-        + list(silver_files.keys())
-        + list(silver_sample_files.keys())
-        + list(gold_files.keys())
-    )
-
-    layers = ["bronze", "silver", "silver_samples", "gold"]
-
-    ## For each table and each layer, cascade transforms and create table
-    for tbl in sorted(all_tables):
-        df=None
-        skip_table=False
-        for layer in layers:
-            if layer == "bronze" and tbl not in bronze_files:
-                break
-            if layer == "silver" and tbl not in silver_files:
-                break
-            if layer == "silver_samples" and tbl not in silver_sample_files:
-                continue
-            if layer == "gold" and tbl not in gold_files:
-                break
-            if layer == "bronze":
-                path = bronze_files[tbl]
-            elif layer == "silver":
-                path = silver_files[tbl]
-            elif layer == "silver_samples":
-                path = silver_sample_files[tbl]
-            elif layer == "gold":
-                path = gold_files[tbl]
-            settings=json.loads(open(path).read())
+    # Load all settings keyed by destination table name
+    settings_map = {}
+    for files in [bronze_files, silver_files, silver_sample_files, gold_files]:
+        for path in files.values():
+            settings = json.loads(open(path).read())
             settings = apply_job_type(settings)
-            if layer=="bronze":
-                settings["use_metadata"] = "false"
-                if "file_schema" not in settings:
-                    errs.append(f"{path} missing file_schema, cannot create table")
-                    skip_table=True
-                    break
-                schema=StructType.fromJson(settings["file_schema"])
-                df=spark.createDataFrame([], schema)
-            try:
-                transform_function = get_function(settings["transform_function"])
-            except Exception:
-                errs.append(f"{path} missing transform_function for {tbl}, cannot create table")
-                skip_table=True
-                break
-            df=transform_function(df, settings, spark)
-            dst=settings["dst_table_name"]
-            create_table_if_not_exists(df, dst, spark)
-        if skip_table:
+            settings["_path"] = path  # retain for error messages
+            dst = settings.get("dst_table_name")
+            if dst:
+                settings_map[dst] = settings
+
+    # Determine processing order based on src -> dst lineage
+    ordered = sort_by_dependency(build_dependency_graph(settings_map.values()))
+
+    for item in ordered:
+        settings = settings_map[item["table"]]
+        path = settings["_path"]
+        src = settings.get("src_table_name")
+
+        if src and src in settings_map:
+            df = spark.table(src).limit(0)
+        else:
+            settings["use_metadata"] = "false"
+            if "file_schema" not in settings:
+                errs.append(f"{path} missing file_schema, cannot create table")
+                continue
+            schema = StructType.fromJson(settings["file_schema"])
+            df = spark.createDataFrame([], schema)
+
+        try:
+            transform_function = get_function(settings["transform_function"])
+        except Exception:
+            errs.append(
+                f"{path} missing transform_function for {settings.get('dst_table_name')}, cannot create table"
+            )
             continue
 
+        df = transform_function(df, settings, spark)
+        dst = settings["dst_table_name"]
+        create_table_if_not_exists(df, dst, spark)
+
     if errs:
-        raise RuntimeError("Sanity check failed: "+", ".join(errs))
+        raise RuntimeError("Sanity check failed: " + ", ".join(errs))
     else:
         print("Sanity check: Initialize empty tables check passed.")
 

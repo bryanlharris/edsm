@@ -31,10 +31,16 @@ the other layers so empty tables can be initialized.
 
 ## `initialize_empty_tables`
 
-Create empty Delta tables based on the configured transforms. Each table
-is built layer by layer starting from an empty DataFrame and written with
-`create_table_if_not_exists`. The read/transform/write chain cascades
-through bronze, bronze history, silver, silver samples and gold layers.
+Create empty Delta tables based on the configured transforms. All settings
+files are loaded and keyed by their ``dst_table_name``. Dependencies are
+derived from each setting's ``src_table_name`` so the lineage between tables
+is explicit. The resulting graph is topologically sorted and each
+``transform_function`` is invoked in dependency order before calling
+``create_table_if_not_exists`` for the destination table. This lineage-based
+approach removes the requirement for matching file names across layers;
+configuration relies solely on the ``src_table_name`` and ``dst_table_name``
+values. Bronze tables must still provide ``file_schema`` to create the
+initial empty DataFrame.
 
 ## `validate_s3_roots`
 
