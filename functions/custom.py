@@ -17,6 +17,6 @@ settings file:
 .. code-block:: json
 
     {
-      "transform_function": "functions.custom.my_transform"
+        "transform_function": "functions.custom.my_transform"
     }
 """
