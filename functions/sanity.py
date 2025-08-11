@@ -71,6 +71,16 @@ def validate_settings(dbutils):
 
     bronze_files, silver_files, silver_sample_files, gold_files = _discover_settings_files()
 
+    # Build a lookup of all destination table names for case-insensitive matching
+    dst_tables = {}
+    for files in [bronze_files, silver_files, silver_sample_files, gold_files]:
+        for path in files.values():
+            settings = json.loads(open(path).read())
+            settings = apply_job_type(settings)
+            dst = settings.get("dst_table_name")
+            if dst:
+                dst_tables[dst.lower()] = dst
+
     all_tables = set(
         list(bronze_files.keys())
         + list(silver_files.keys())
@@ -126,6 +136,19 @@ def validate_settings(dbutils):
                         errs.append(
                             f"{path} missing {req_key} for write_function {write_fn}"
                         )
+
+    # Validate src_table_name casing against known destination tables
+    for files in [bronze_files, silver_files, silver_sample_files, gold_files]:
+        for path in files.values():
+            settings = json.loads(open(path).read())
+            settings = apply_job_type(settings)
+            src = settings.get("src_table_name")
+            if src:
+                dst_match = dst_tables.get(src.lower())
+                if dst_match and dst_match != src:
+                    errs.append(
+                        f"{path} src_table_name {src} differs from dst_table_name {dst_match} only by case; ensure consistent casing"
+                    )
 
     # Validate silver table dependencies
     silver_defined = {name.lower() for name in silver_files.keys()}
