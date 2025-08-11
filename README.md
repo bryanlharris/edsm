@@ -6,33 +6,33 @@ For MS Word documentation, see [here](https://github.com/bryanlharris/Documentat
 
 If you just want to get started building a job like this one, read the first doc.
 
-* [docs/procedures/build_pipeline.md](docs/procedures/build_pipeline.md) - Build a pipeline based on this EDSM pipeline.
-* [docs/bronze.md](docs/bronze.md) - Overview of the bronze layer.
-* [docs/silver.md](docs/silver.md) - Overview of how silver data is ingested, transformed and written.
-* [docs/table_dependencies.md](docs/table_dependencies.md) - Silver table dependencies and execution order.
-* [docs/ingest.md](docs/ingest.md) - Explanation of the ingest notebook.
-* [docs/sampling.md](docs/sampling.md) - Information on generating sample data.
-* [docs/job-definition.md](docs/job-definition.md) - Overview of the job-definition YAML.
-* [docs/job_settings.md](docs/job_settings.md) - Details about preparing configuration for each task.
-* [docs/custom.md](docs/custom.md) - Creating and using custom transforms.
-* [docs/history.md](docs/history.md) - Notebook for building file ingestion history.
-* [docs/requirements.md](docs/requirements.md) - Overview of project requirements and capabilities.
-* [docs/functions/config.md](docs/functions/config.md) - Constants shared across notebooks.
-* [docs/functions/utility.md](docs/functions/utility.md) - Utility helper functions.
-* [docs/functions/read.md](docs/functions/read.md) - Functions that read data sources.
-* [docs/functions/write.md](docs/functions/write.md) - Functions that write and merge tables.
-* [docs/functions/history.md](docs/functions/history.md) - Delta transaction history utilities.
-* [docs/functions/quality.md](docs/functions/quality.md) - Data quality helpers.
-* [docs/functions/dq_checks.md](docs/functions/dq_checks.md) - Custom DQX check functions.
-* [docs/functions/sanity.md](docs/functions/sanity.md) - Sanity helper functions.
-* [docs/functions/rescue.md](docs/functions/rescue.md) - Table rescue utilities.
-* [docs/functions/transform.md](docs/functions/transform.md) - Transformation helpers.
-* [docs/utilities/downloader.md](docs/utilities/downloader.md) - Details about fetching nightly dumps.
-* [docs/utilities/profile_silver_table.md](docs/utilities/profile_silver_table.md) - Notebook for generating DQX rules from a silver table.
-* [docs/utilities/drop_schema_tables.md](docs/utilities/drop_schema_tables.md) - Notebook for removing history tables from a schema.
-* [docs/utilities/migrate_history_tables.md](docs/utilities/migrate_history_tables.md) - Convert and remove old history tables.
-* [docs/utilities/add_history_ingest_time.md](docs/utilities/add_history_ingest_time.md) - Notebook for adding `ingest_time` to history tables.
-* [docs/utilities/drop_rescued_data.md](docs/utilities/drop_rescued_data.md) - Notebook for removing `_rescued_data` columns from all tables.
-* [docs/utilities/restore_table_version_dashboard.md](docs/utilities/restore_table_version_dashboard.md) - Databricks SQL dashboard for restoring table versions.
-* [docs/utilities/uploader.md](docs/utilities/uploader.md) - Script for uploading notebooks to the workspace (excludes `.git`).
-* [docs/delta-sharing.md](docs/delta-sharing.md) - Sharing tables over Delta Sharing.
+* docs/procedures/build_pipeline.md - Build a pipeline based on this EDSM pipeline.
+* docs/bronze.md - Overview of the bronze layer.
+* docs/silver.md - Overview of how silver data is ingested, transformed and written.
+* docs/table_dependencies.md - Silver table dependencies and execution order.
+* docs/ingest.md - Explanation of the ingest notebook.
+* docs/sampling.md - Information on generating sample data.
+* docs/job-definition.md - Overview of the job-definition YAML.
+* docs/job_settings.md - Details about preparing configuration for each task.
+* docs/custom.md - Creating and using custom transforms.
+* docs/history.md - Notebook for building file ingestion history.
+* docs/requirements.md - Overview of project requirements and capabilities.
+* docs/functions/config.md - Constants shared across notebooks.
+* docs/functions/utility.md - Utility helper functions.
+* docs/functions/read.md - Functions that read data sources.
+* docs/functions/write.md - Functions that write and merge tables.
+* docs/functions/history.md - Delta transaction history utilities.
+* docs/functions/quality.md - Data quality helpers.
+* docs/functions/dq_checks.md - Custom DQX check functions.
+* docs/functions/sanity.md - Sanity helper functions.
+* docs/functions/rescue.md - Table rescue utilities.
+* docs/functions/transform.md - Transformation helpers.
+* docs/utilities/downloader.md - Details about fetching nightly dumps.
+* docs/utilities/profile_silver_table.md - Notebook for generating DQX rules from a silver table.
+* docs/utilities/drop_schema_tables.md - Notebook for removing history tables from a schema.
+* docs/utilities/migrate_history_tables.md - Convert and remove old history tables.
+* docs/utilities/add_history_ingest_time.md - Notebook for adding `ingest_time` to history tables.
+* docs/utilities/drop_rescued_data.md - Notebook for removing `_rescued_data` columns from all tables.
+* docs/utilities/restore_table_version_dashboard.md - Databricks SQL dashboard for restoring table versions.
+* docs/utilities/uploader.md - Script for uploading notebooks to the workspace (excludes `.git`).
+* docs/delta-sharing.md - Sharing tables over Delta Sharing.
