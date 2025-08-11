@@ -275,3 +275,55 @@ def test_initialize_empty_tables_dependency_order(monkeypatch):
 
     sanity.initialize_empty_tables(spark)
     assert created == ['cat.bronze.b', 'cat.silver.s']
+
+
+def test_initialize_empty_tables_external_source(monkeypatch):
+    silver_path = 'silver.json'
+    monkeypatch.setattr(
+        sanity,
+        '_discover_settings_files',
+        lambda: ({}, {'s': silver_path}, {}, {}),
+    )
+
+    import builtins, io, json
+
+    def fake_open(p, *a, **k):
+        if p == silver_path:
+            return io.StringIO(
+                json.dumps(
+                    {
+                        'src_table_name': 'cat.bronze.b',
+                        'dst_table_name': 'cat.silver.s',
+                        'transform_function': 't.silver',
+                    }
+                )
+            )
+        return builtins.open(p, *a, **k)
+
+    monkeypatch.setattr(builtins, 'open', fake_open)
+
+    created = []
+
+    def fake_create_table(df, dst, spark):
+        created.append(dst)
+
+    def fake_get_function(name):
+        return lambda df, settings, spark: df
+
+    class DummyDF(dict):
+        def limit(self, n):
+            return self
+
+    class DummySpark:
+        def __init__(self):
+            self.tables = {'cat.bronze.b': DummyDF()}
+
+        def table(self, name):
+            return self.tables[name]
+
+    spark = DummySpark()
+    monkeypatch.setattr(sanity, 'create_table_if_not_exists', fake_create_table)
+    monkeypatch.setattr(sanity, 'get_function', fake_get_function)
+
+    sanity.initialize_empty_tables(spark)
+    assert created == ['cat.silver.s']
