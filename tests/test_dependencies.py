@@ -36,9 +36,18 @@ def test_cycle_detection():
 
 def test_build_dependency_graph():
     settings = [
-        {"dst_table_name": "a"},
-        {"src_table_name": "a", "dst_table_name": "b"},
+        {"dst_table_name": "A"},
+        {"src_table_name": "a", "dst_table_name": "B"},
     ]
     items = build_dependency_graph(settings)
     result = sort_by_dependency(items)
     assert [i["table"] for i in result] == ["a", "b"]
+
+
+def test_sort_by_dependency_case_insensitive():
+    items = [
+        {"table": "TableB", "requires": ["TableA"]},
+        {"table": "tablea"},
+    ]
+    result = sort_by_dependency(items)
+    assert [i["table"] for i in result] == ["tablea", "tableb"]
