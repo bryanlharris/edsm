@@ -1,5 +1,5 @@
 from collections import deque
-from typing import List, Dict, Set
+from typing import Iterable, List, Dict, Set
 
 
 def sort_by_dependency(items: List[Dict[str, object]]) -> List[Dict[str, object]]:
@@ -44,3 +44,34 @@ def sort_by_dependency(items: List[Dict[str, object]]) -> List[Dict[str, object]
         raise ValueError(f"Circular dependency detected: {', '.join(sorted(remaining))}")
 
     return [table_map[name] for name in ordered]
+
+
+def build_dependency_graph(settings: Iterable[Dict[str, object]]) -> List[Dict[str, object]]:
+    """Return dependency items derived from settings mappings.
+
+    Parameters
+    ----------
+    settings:
+        Iterable of settings dictionaries. Each mapping must include a
+        ``dst_table_name`` key and may include ``src_table_name`` to denote
+        lineage to another table.
+
+    Returns
+    -------
+    List[Dict[str, object]]
+        A list of ``{"table": dst, "requires": [src]}`` dictionaries suitable
+        for :func:`sort_by_dependency`. Dependencies to tables that do not
+        appear as a ``dst_table_name`` in ``settings`` are ignored.
+    """
+
+    table_map: Dict[str, Dict[str, object]] = {
+        s["dst_table_name"]: s for s in settings if s.get("dst_table_name")
+    }
+
+    items: List[Dict[str, object]] = []
+    for dst, cfg in table_map.items():
+        src = cfg.get("src_table_name")
+        requires = [src] if src in table_map else []
+        items.append({"table": dst, "requires": requires})
+
+    return items

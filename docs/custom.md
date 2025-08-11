@@ -27,3 +27,8 @@ Settings snippet:
 
 When the job executes, ``get_function`` imports ``functions.custom`` and
 calls ``my_transform`` with the DataFrame, settings, and spark session.
+
+Transforms are linked through ``src_table_name`` and ``dst_table_name`` fields
+in the settings files. Dependency order is resolved from this lineage, so
+settings across layers do not need matching filenames—only the correct table
+references.
