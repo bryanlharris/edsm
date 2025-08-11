@@ -176,8 +176,12 @@ def initialize_empty_tables(spark):
         path = settings["_path"]
         src = settings.get("src_table_name")
 
-        if src and src in settings_map:
-            df = spark.table(src).limit(0)
+        if src:
+            try:
+                df = spark.table(src).limit(0)
+            except Exception:
+                errs.append(f"{path} missing source table {src}, cannot create table")
+                continue
         else:
             settings["use_metadata"] = "false"
             if "file_schema" not in settings:
