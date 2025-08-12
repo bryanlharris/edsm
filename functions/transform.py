@@ -315,13 +315,12 @@ def sample_table(df, settings, spark):
     if sample_type == "simple":
         id_col = settings["sample_id_col"]
         sample_size = parse_si(settings["sample_size"])
-        if not spark.catalog.tableExists(settings["src_table_name"]):
+        src_table_name = settings["src_table_name"]
+        if not spark.catalog.tableExists(src_table_name):
             return df
 
         total = (
-            spark.sql(
-                f"SELECT approx_count_distinct({id_col}) AS total FROM {settings['src_table_name']}"
-            )
+            spark.sql(f"SELECT count(*) AS total FROM {src_table_name}")
             .collect()[0][0]
         )
         modulus = max(int(total / sample_size), 1)
