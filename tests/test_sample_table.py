@@ -6,6 +6,9 @@ import unittest
 
 func_mod = sys.modules['pyspark.sql.functions']
 types_mod = sys.modules['pyspark.sql.types']
+window_mod = types.ModuleType('pyspark.sql.window')
+setattr(window_mod, 'Window', type('Window', (), {}))
+sys.modules['pyspark.sql.window'] = window_mod
 
 for name in [
     'StructType', 'StructField', 'StringType', 'LongType',
@@ -33,7 +36,7 @@ def dummy(*args, **kwargs):
 for name in [
     'concat','regexp_extract','date_format','current_timestamp','when','col',
     'to_timestamp','to_date','regexp_replace','sha2','lit','trim','struct',
-    'to_json','expr','transform','array','rand','conv','substring','hash','pmod'
+    'to_json','expr','transform','array','rand','conv','substring','hash','pmod','row_number'
 ]:
     func_mod.__dict__.setdefault(name, dummy)
 
@@ -86,7 +89,7 @@ class SimpleSampleTests(unittest.TestCase):
         self.assertEqual(captured.get('modulus'), 5)
         self.assertEqual(
             spark.query,
-            'SELECT approx_count_distinct(id) AS total FROM tbl'
+            'SELECT count(*) AS total FROM tbl'
         )
 
     def test_returns_input_when_table_missing(self):
