@@ -123,6 +123,11 @@ def validate_settings(dbutils):
         for tbl, path in files.items():
             settings = json.loads(open(path).read())
             settings = apply_job_type(settings)
+            job_type = settings.get("job_type")
+            if job_type == "gold_sql_notebook":
+                if layer != "gold":
+                    errs.append(f"{path} gold_sql_notebook only allowed in gold layer")
+                continue
             # Skip validation when a pipeline function is used
             if "pipeline_function" in settings:
                 continue
@@ -186,6 +191,8 @@ def initialize_empty_tables(spark):
         for path in files.values():
             settings = json.loads(open(path).read())
             settings = apply_job_type(settings)
+            if settings.get("job_type") == "gold_sql_notebook":
+                continue
             settings["_path"] = path  # retain for error messages
             dst = settings.get("dst_table_name")
             if dst:
@@ -257,6 +264,8 @@ def initialize_schemas_and_volumes(spark):
         for path in files.values():
             settings = json.loads(open(path).read())
             settings = apply_job_type(settings)
+            if settings.get("job_type") == "gold_sql_notebook":
+                continue
             dst = settings.get("dst_table_name")
             if not dst:
                 continue

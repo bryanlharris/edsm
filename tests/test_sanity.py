@@ -129,6 +129,48 @@ def test_validate_settings_skips_pipeline_function(capsys, monkeypatch):
     assert 'Sanity check: Validate settings check passed.' in out
 
 
+def test_validate_settings_accepts_gold_sql_notebook(capsys, monkeypatch):
+    path = 'gold.json'
+    monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({}, {}, {}, {'tbl': path}))
+
+    import builtins, io, json
+
+    def fake_open(p, *a, **k):
+        if p == path:
+            return io.StringIO(json.dumps({
+                'simple_settings': 'true',
+                'job_type': 'gold_sql_notebook',
+                'notebook_path': '/Workspace/Shared/example'
+            }))
+        return builtins.open(p, *a, **k)
+
+    monkeypatch.setattr(builtins, 'open', fake_open)
+    sanity.validate_settings(DummyDbutils())
+    out = capsys.readouterr().out
+    assert 'Sanity check: Validate settings check passed.' in out
+
+
+def test_validate_settings_gold_sql_notebook_layer_mismatch(monkeypatch):
+    path = 'silver.json'
+    monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({}, {'tbl': path}, {}, {}))
+
+    import builtins, io, json
+
+    def fake_open(p, *a, **k):
+        if p == path:
+            return io.StringIO(json.dumps({
+                'simple_settings': 'true',
+                'job_type': 'gold_sql_notebook',
+                'notebook_path': '/Workspace/Shared/example'
+            }))
+        return builtins.open(p, *a, **k)
+
+    monkeypatch.setattr(builtins, 'open', fake_open)
+    with pytest.raises(RuntimeError) as exc:
+        sanity.validate_settings(DummyDbutils())
+    assert 'gold_sql_notebook only allowed in gold layer' in str(exc.value)
+
+
 def test_validate_settings_missing_dependency(monkeypatch):
     paths = {'a': 'a.json', 'b': 'b.json'}
     monkeypatch.setattr(sanity, '_discover_settings_files', lambda: ({}, paths, {}, {}))
