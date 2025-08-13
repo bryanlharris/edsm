@@ -1,0 +1,5 @@
+{
+    "simple_settings": "true",
+    "job_type": "gold_sql_notebook",
+    "notebook_path": "/Workspace/Shared/example_sql_notebook"
+}

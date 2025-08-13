@@ -57,6 +57,9 @@ JOB_TYPE_MAP = {
     "history_pipeline": {
         "pipeline_function": "functions.history.history_pipeline",
     },
+    "gold_sql_notebook": {
+        "pipeline_function": "functions.sql.run_sql_notebook",
+    },
 }
 
 
