@@ -280,6 +280,102 @@ def test_validate_settings_detects_cycle(monkeypatch):
     assert 'Circular dependency detected' in str(exc.value)
 
 
+def test_validate_settings_conflicting_sample_keys(monkeypatch):
+    path = 'sample.json'
+    monkeypatch.setattr(
+        sanity, '_discover_settings_files', lambda: ({}, {'tbl': path}, {}, {})
+    )
+
+    import builtins, io, json
+
+    def fake_open(p, *a, **k):
+        if p == path:
+            return io.StringIO(
+                json.dumps(
+                    {
+                        'read_function': 'r',
+                        'transform_function': 't',
+                        'write_function': 'w',
+                        'src_table_name': 's',
+                        'dst_table_name': 'd',
+                        'sample_fraction': 0.1,
+                        'sample_size': '1k',
+                    }
+                )
+            )
+        return builtins.open(p, *a, **k)
+
+    monkeypatch.setattr(builtins, 'open', fake_open)
+    dbutils = DummyDbutils({'silver_parallel': [], 'silver_sequential': []})
+    with pytest.raises(RuntimeError) as exc:
+        sanity.validate_settings(dbutils)
+    assert 'sample_fraction or sample_size' in str(exc.value)
+
+
+def test_validate_settings_deterministic_requires_sampling(monkeypatch):
+    path = 'sample.json'
+    monkeypatch.setattr(
+        sanity, '_discover_settings_files', lambda: ({}, {'tbl': path}, {}, {})
+    )
+
+    import builtins, io, json
+
+    def fake_open(p, *a, **k):
+        if p == path:
+            return io.StringIO(
+                json.dumps(
+                    {
+                        'read_function': 'r',
+                        'transform_function': 't',
+                        'write_function': 'w',
+                        'src_table_name': 's',
+                        'dst_table_name': 'd',
+                        'sample_type': 'deterministic',
+                    }
+                )
+            )
+        return builtins.open(p, *a, **k)
+
+    monkeypatch.setattr(builtins, 'open', fake_open)
+    dbutils = DummyDbutils({'silver_parallel': [], 'silver_sequential': []})
+    with pytest.raises(RuntimeError) as exc:
+        sanity.validate_settings(dbutils)
+    assert "sample_type 'deterministic' requires" in str(exc.value)
+
+
+def test_validate_settings_deterministic_exactly_one(monkeypatch, capsys):
+    path = 'sample.json'
+    monkeypatch.setattr(
+        sanity, '_discover_settings_files', lambda: ({}, {'tbl': path}, {}, {})
+    )
+
+    import builtins, io, json
+
+    def fake_open(p, *a, **k):
+        if p == path:
+            return io.StringIO(
+                json.dumps(
+                    {
+                        'read_function': 'r',
+                        'transform_function': 't',
+                        'write_function': 'w',
+                        'src_table_name': 's',
+                        'dst_table_name': 'd',
+                        'sample_type': 'deterministic',
+                        'sample_fraction': 0.1,
+                    }
+                )
+            )
+        return builtins.open(p, *a, **k)
+
+    monkeypatch.setattr(builtins, 'open', fake_open)
+    monkeypatch.setattr(config, 'S3_ROOT_LANDING', 's3://landing/')
+    monkeypatch.setattr(config, 'S3_ROOT_UTILITY', 's3://utility/')
+    sanity.validate_settings(DummyDbutils({'silver_parallel': [], 'silver_sequential': []}))
+    out = capsys.readouterr().out
+    assert 'Sanity check: Validate settings check passed.' in out
+
+
 def test_initialize_empty_tables_dependency_order(monkeypatch):
     class DummyStructType:
         @staticmethod

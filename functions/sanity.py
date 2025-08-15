@@ -131,6 +131,19 @@ def validate_settings(dbutils):
             # Skip validation when a pipeline function is used
             if "pipeline_function" in settings:
                 continue
+            fraction_present = "sample_fraction" in settings
+            size_present = "sample_size" in settings
+            if fraction_present and size_present:
+                errs.append(
+                    f"{path} specify either sample_fraction or sample_size, not both"
+                )
+            elif (
+                str(settings.get("sample_type", "")).lower() == "deterministic"
+                and not (fraction_present or size_present)
+            ):
+                errs.append(
+                    f"{path} sample_type 'deterministic' requires sample_fraction or sample_size"
+                )
             for k in required_keys[layer]:
                 if k not in settings:
                     errs.append(f"{path} missing {k}")
