@@ -281,7 +281,7 @@ def cast_data_types(df, data_type_map=None):
 
 
 def sample_table(df, settings, spark):
-    """Return a sample of ``df`` based on ``sample_type`` and ``sample_fraction``.
+    """Return a sample of ``df`` based on ``sample_type`` and sampling options.
 
     Parameters
     ----------
@@ -289,21 +289,36 @@ def sample_table(df, settings, spark):
         Input DataFrame.
     settings : dict
         Configuration dictionary that may include ``sample_type`` (``random`` or
-        ``deterministic``), ``sample_fraction``, and ``hash_modulus`` when using
-        deterministic sampling.
+        ``deterministic``), ``sample_fraction`` or ``sample_size``, and ``hash_modulus``
+        when using deterministic sampling.
     spark : SparkSession
         Unused but included for API consistency.
     """
 
     sample_type = str(settings.get("sample_type", "random")).lower()
-    fraction = float(settings.get("sample_fraction", 0.01))
 
     if "_rescued_data" in df.columns:
         df = df.drop("_rescued_data")
 
     if sample_type == "deterministic":
-        modulus = int(settings.get("hash_modulus", 1000000))
-        threshold = int(fraction * modulus)
+        fraction = settings.get("sample_fraction")
+        sample_size = settings.get("sample_size")
+
+        if fraction is not None and sample_size is not None:
+            raise ValueError("Provide either sample_fraction or sample_size, not both")
+        if fraction is None and sample_size is None:
+            raise ValueError("sample_fraction or sample_size must be supplied")
+
+        modulus = int(parse_si(settings.get("hash_modulus", 1000000)))
+
+        if fraction is not None:
+            fraction = float(fraction)
+            if not 0 <= fraction <= 1:
+                raise ValueError("sample_fraction must be between 0 and 1")
+            threshold = int(fraction * modulus)
+        else:
+            threshold = int(parse_si(sample_size))
+
         row_hash_col = settings.get("row_hash_col", "row_hash")
 
         if row_hash_col not in df.columns:
@@ -327,6 +342,7 @@ def sample_table(df, settings, spark):
         df = df.where(col(id_col).isNotNull())
         return df.where(pmod(hash(col(id_col)), modulus) == 0)
 
+    fraction = float(settings.get("sample_fraction", 0.01))
     return df.where(rand() < fraction)
 
 

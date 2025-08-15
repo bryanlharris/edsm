@@ -33,7 +33,7 @@ Return a subset of rows based on the sampling configuration.
 
 Parameters
 - **df**: input DataFrame
-- **settings**: may contain `sample_type`, `sample_fraction`, `hash_modulus`, `sample_id_col` and `sample_size`
+- **settings**: may contain `sample_type`, `hash_modulus`, `sample_id_col` and either `sample_fraction` or `sample_size`
 - **spark**: Spark session used for the `simple` sampling mode
 
 ### `rename_columns`
