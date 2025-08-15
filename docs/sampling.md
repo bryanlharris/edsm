@@ -24,15 +24,22 @@ If omitted, random sampling is used.
 
 ## Sample fraction
 
-`sample_fraction` specifies the fraction of rows to return. When using
-`deterministic` sampling the fraction is applied against the `hash_modulus`
-value. If this option is not provided the default value `0.01` (1%) is used.
+`sample_fraction` specifies the fraction of rows to return. Values must be
+between 0 and 1. When using `deterministic` sampling the fraction is applied
+against the `hash_modulus` value. In `random` mode the default value `0.01`
+(1%) is used when `sample_fraction` is not provided.
+
+## Sample size
+
+`sample_size` provides an absolute threshold for deterministic sampling and may
+use SI notation such as `1k` or `5m`. It is mutually exclusive with
+`sample_fraction`.
 
 ## Hash modulus
 
 When `sample_type` is `deterministic`, the `hash_modulus` setting determines the
-size of the modulus space used to compute the threshold. It defaults to
-`1000000` when not supplied.
+size of the modulus space used to compute the threshold. The value may be
+expressed using SI notation and defaults to `1000000` when not supplied.
 
 If a column named by `row_hash_col` (default `row_hash`) already exists, it will
 be used for deterministic sampling; otherwise the column is created using all

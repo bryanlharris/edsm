@@ -21,6 +21,9 @@ class DummyColumn:
         return self
     def __eq__(self, other):
         return self
+    def __lt__(self, other):
+        captured['threshold'] = other
+        return self
 
 dummy_col = DummyColumn()
 captured = {}
@@ -47,6 +50,12 @@ spec = importlib.util.spec_from_file_location('functions.transform', transform_p
 transform = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(transform)
 
+def add_row_hash_mod(df, column_name, modulus):
+    captured['modulus'] = modulus
+    return df
+
+transform.add_row_hash_mod = add_row_hash_mod
+
 class DummyDF:
     def __init__(self, columns=None):
         self.wheres = 0
@@ -62,6 +71,9 @@ class DummyDF:
         self.columns = [c for c in self.columns if c not in cols]
         return self
 
+    def transform(self, func, *args, **kwargs):
+        return func(self, *args, **kwargs)
+
 class DummySpark:
     def __init__(self, count=20, exists=True):
         self.read = types.SimpleNamespace(table=lambda name: DummyDF())
@@ -74,6 +86,8 @@ class DummySpark:
         return types.SimpleNamespace(collect=lambda: [[self.count]])
 
 class SimpleSampleTests(unittest.TestCase):
+    def setUp(self):
+        captured.clear()
     def test_simple_sampling_uses_modulus(self):
         spark = DummySpark(count=20)
         settings = {
@@ -120,6 +134,69 @@ class SimpleSampleTests(unittest.TestCase):
         result = transform.sample_table(df, settings, spark=spark)
         self.assertIs(result, df)
         self.assertIn('_rescued_data', df.dropped)
+
+
+class DeterministicSampleTests(unittest.TestCase):
+    def setUp(self):
+        captured.clear()
+
+    def test_fraction_threshold_and_modulus(self):
+        spark = DummySpark()
+        settings = {
+            'sample_type': 'deterministic',
+            'sample_fraction': 0.2,
+            'hash_modulus': '10',
+        }
+        df = DummyDF(columns=['row_hash'])
+        result = transform.sample_table(df, settings, spark=spark)
+        self.assertIs(result, df)
+        self.assertEqual(captured.get('modulus'), 10)
+        self.assertEqual(captured.get('threshold'), 2)
+        self.assertIn('row_hash_mod', df.dropped)
+
+    def test_uses_sample_size(self):
+        spark = DummySpark()
+        settings = {
+            'sample_type': 'deterministic',
+            'sample_size': '3',
+            'hash_modulus': '10',
+        }
+        df = DummyDF(columns=['row_hash'])
+        transform.sample_table(df, settings, spark=spark)
+        self.assertEqual(captured.get('threshold'), 3)
+
+    def test_requires_parameter(self):
+        spark = DummySpark()
+        settings = {
+            'sample_type': 'deterministic',
+            'hash_modulus': '10',
+        }
+        df = DummyDF(columns=['row_hash'])
+        with self.assertRaises(ValueError):
+            transform.sample_table(df, settings, spark=spark)
+
+    def test_parameters_mutually_exclusive(self):
+        spark = DummySpark()
+        settings = {
+            'sample_type': 'deterministic',
+            'sample_fraction': 0.1,
+            'sample_size': '5',
+            'hash_modulus': '10',
+        }
+        df = DummyDF(columns=['row_hash'])
+        with self.assertRaises(ValueError):
+            transform.sample_table(df, settings, spark=spark)
+
+    def test_fraction_range(self):
+        spark = DummySpark()
+        settings = {
+            'sample_type': 'deterministic',
+            'sample_fraction': 1.2,
+            'hash_modulus': '10',
+        }
+        df = DummyDF(columns=['row_hash'])
+        with self.assertRaises(ValueError):
+            transform.sample_table(df, settings, spark=spark)
 
 if __name__ == '__main__':
     unittest.main()
