@@ -29,12 +29,25 @@ Parameters
 ## Common transforms
 
 ### `sample_table`
-Return a subset of rows based on the sampling configuration.
+Return a subset of rows based on the sampling configuration. Deterministic
+sampling accepts either a fractional `sample_fraction` between 0 and 1 or an
+absolute `sample_size` using SI notation such as `10k`. The `hash_modulus`
+setting also supports SI notation.
 
 Parameters
 - **df**: input DataFrame
-- **settings**: may contain `sample_type`, `hash_modulus`, `sample_id_col` and either `sample_fraction` or `sample_size`
+- **settings**: may contain `sample_type`, `hash_modulus`, `sample_id_col` and either `sample_fraction` (0–1) or `sample_size` (SI string)
 - **spark**: Spark session used for the `simple` sampling mode
+
+```python
+settings = {
+    "sample_type": "deterministic",
+    "sample_size": "10k",
+    "hash_modulus": "1M",
+}
+
+sampled_df = sample_table(df, settings, spark)
+```
 
 ### `rename_columns`
 Rename DataFrame columns using the provided mapping.
