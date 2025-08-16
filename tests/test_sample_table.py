@@ -154,16 +154,28 @@ class DeterministicSampleTests(unittest.TestCase):
         self.assertEqual(captured.get('threshold'), 2)
         self.assertIn('row_hash_mod', df.dropped)
 
+    def test_fraction_si_notation_raises(self):
+        spark = DummySpark()
+        settings = {
+            'sample_type': 'deterministic',
+            'sample_fraction': '500k',
+            'hash_modulus': '1M',
+        }
+        df = DummyDF(columns=['row_hash'])
+        with self.assertRaises(ValueError):
+            transform.sample_table(df, settings, spark=spark)
+
     def test_uses_sample_size(self):
         spark = DummySpark()
         settings = {
             'sample_type': 'deterministic',
-            'sample_size': '3',
-            'hash_modulus': '10',
+            'sample_size': '10k',
+            'hash_modulus': '1M',
         }
         df = DummyDF(columns=['row_hash'])
         transform.sample_table(df, settings, spark=spark)
-        self.assertEqual(captured.get('threshold'), 3)
+        self.assertEqual(captured.get('modulus'), 1000000)
+        self.assertEqual(captured.get('threshold'), 10000)
 
     def test_requires_parameter(self):
         spark = DummySpark()
@@ -180,8 +192,8 @@ class DeterministicSampleTests(unittest.TestCase):
         settings = {
             'sample_type': 'deterministic',
             'sample_fraction': 0.1,
-            'sample_size': '5',
-            'hash_modulus': '10',
+            'sample_size': '10k',
+            'hash_modulus': '1M',
         }
         df = DummyDF(columns=['row_hash'])
         with self.assertRaises(ValueError):
