@@ -71,8 +71,8 @@ modulus of one million.
 ```python
 settings = {
     "sample_type": "deterministic",
-    "sample_size": "10k",
-    "hash_modulus": "1M",
+    "sample_size": "10k",  # ten thousand rows
+    "hash_modulus": "1M",  # modulus of one million
 }
 
 sampled_df = sample_table(df, settings, spark)

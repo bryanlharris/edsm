@@ -3,8 +3,8 @@
     "job_type": "silver_sample_batch",
     "src_table_name": "edsm.silver.example",
     "dst_table_name": "edsm.silver_samples.example_100k",
-    "sample_type": "simple",
-    "sample_id_col": "id",
+    "sample_type": "deterministic",
     "sample_size": "100k",
+    "hash_modulus": "1M",
     "dqx_checks": []
 }
