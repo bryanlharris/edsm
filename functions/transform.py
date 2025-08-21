@@ -329,16 +329,31 @@ def sample_table(df, settings, spark):
 
     if sample_type == "simple":
         id_col = settings["sample_id_col"]
-        sample_size = parse_si(settings["sample_size"])
-        src_table_name = settings["src_table_name"]
-        if not spark.catalog.tableExists(src_table_name):
-            return df
+        fraction = settings.get("sample_fraction")
+        sample_size = settings.get("sample_size")
 
-        total = (
-            spark.sql(f"SELECT count(*) AS total FROM {src_table_name}")
-            .collect()[0][0]
-        )
-        modulus = max(int(total / sample_size), 1)
+        if fraction is not None and sample_size is not None:
+            raise ValueError("Provide either sample_fraction or sample_size, not both")
+        if fraction is None and sample_size is None:
+            raise ValueError("sample_fraction or sample_size must be supplied")
+
+        if fraction is not None:
+            fraction = float(fraction)
+            if not 0 < fraction <= 1:
+                raise ValueError("sample_fraction must be between 0 and 1")
+            modulus = max(int(1 / fraction), 1)
+        else:
+            sample_size = parse_si(sample_size)
+            src_table_name = settings["src_table_name"]
+            if not spark.catalog.tableExists(src_table_name):
+                return df
+
+            total = (
+                spark.sql(f"SELECT count(*) AS total FROM {src_table_name}")
+                .collect()[0][0]
+            )
+            modulus = max(int(total / sample_size), 1)
+
         df = df.where(col(id_col).isNotNull())
         return df.where(pmod(hash(col(id_col)), modulus) == 0)
 
