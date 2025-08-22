@@ -29,14 +29,14 @@ Parameters
 ## Common transforms
 
 ### `sample_table`
-Return a subset of rows based on the sampling configuration. Deterministic
-sampling accepts either a fractional `sample_fraction` between 0 and 1 or an
-absolute `sample_size` using SI notation such as `10k`. The `hash_modulus`
+Return a subset of rows based on the sampling configuration. Deterministic and
+simple sampling accept either a fractional `sample_fraction` between 0 and 1 or
+an absolute `sample_size` using SI notation such as `10k`. The `hash_modulus`
 setting also supports SI notation.
 
 Parameters
 - **df**: input DataFrame
-- **settings**: may contain `sample_type`, `hash_modulus`, `sample_id_col` and either `sample_fraction` (0–1) or `sample_size` (SI string)
+- **settings**: may contain `sample_type`, `hash_modulus`, `sample_id_col` and either `sample_fraction` (0–1) or `sample_size` (SI string); the last two options are mutually exclusive
 - **spark**: Spark session used for the `simple` sampling mode
 
 ```python
