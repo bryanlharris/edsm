@@ -16,7 +16,7 @@ pipelines such as the history job can omit the standard
 `read_function`, `transform_function` and `write_function` keys.
 Extra requirements are enforced for certain write functions. Sampling options are
 validated so settings cannot define both `sample_fraction` and `sample_size`, and
-deterministic sampling requires exactly one of them. Silver table dependencies
+deterministic or simple sampling requires exactly one of them. Silver table dependencies
 are validated so each `requires` entry refers to an existing table and cycles are
 reported using `sort_by_dependency`. Raises an exception when any file fails
 validation. When settings are valid it also calls `validate_s3_roots` to warn

@@ -15,14 +15,17 @@ If omitted, random sampling is used.
   between 0 and 1 or an absolute `sample_size` expressed using SI notation
   such as `1k`.
 * `simple` – rows are selected by hashing a specific ID column and applying
-  ``pmod(hash(id), N) = 0``. ``N`` is calculated as ``count(*) /
-  sample_size`` using the row count of the table referenced by ``src_table_name``.
-  The ``settings`` dictionary must include ``sample_id_col`` naming the column to
-  hash and ``sample_size`` specifying how many rows to keep. The ``sample_size``
-  value supports SI notation such as ``1k`` or ``5m``. Only rows where the ID is
-  not null are considered. ``sample_fraction`` is ignored for this mode. When the
-  table named by ``src_table_name`` does not exist ``sample_table`` returns the
-  input unchanged so ``initialize_empty_tables`` can run without errors.
+  ``pmod(hash(id), N) = 0``. When ``sample_fraction`` is supplied the modulus
+  ``N`` is derived from the inverse of the fraction. With ``sample_size`` it is
+  calculated as ``count(*) / sample_size`` using the row count of the table
+  referenced by ``src_table_name``. The ``settings`` dictionary must include
+  ``sample_id_col`` naming the column to hash and either ``sample_fraction`` or
+  ``sample_size`` to specify how many rows to keep. These options are mutually
+  exclusive and ``sample_size`` supports SI notation such as ``1k`` or ``5m``.
+  Only rows where the ID is not null are considered. When ``sample_size`` is
+  used and the table named by ``src_table_name`` does not exist ``sample_table``
+  returns the input unchanged so ``initialize_empty_tables`` can run without
+  errors.
 
 ## Sample fraction
 
@@ -30,14 +33,14 @@ If omitted, random sampling is used.
 between 0 and 1. When using `deterministic` sampling the fraction is applied
 against the `hash_modulus` value. In `random` mode the default value `0.01`
 (1%) is used when `sample_fraction` is not provided. Provide either
-`sample_fraction` **or** `sample_size` when using deterministic sampling.
+`sample_fraction` **or** `sample_size` when using deterministic or simple sampling.
 
 ## Sample size
 
-`sample_size` provides an absolute threshold for deterministic sampling and may
+`sample_size` provides an absolute threshold for deterministic or simple sampling and may
 use SI notation such as `1k` or `5m`. It is mutually exclusive with
 `sample_fraction` and may be supplied instead of a fraction when using
-deterministic sampling.
+deterministic or simple sampling.
 
 ## Hash modulus
 
@@ -79,6 +82,18 @@ sampled_df = sample_table(df, settings, spark)
 ```
 
 This approach keeps approximately 10,000 rows using deterministic sampling.
+
+### Simple sampling with `sample_fraction`
+
+```json
+{
+    "sample_type": "simple",
+    "sample_id_col": "id",
+    "sample_fraction": 0.1
+}
+```
+
+This configuration keeps roughly 10% of the rows based on the hashed `id` column.
 
 ## Persisting samples
 
