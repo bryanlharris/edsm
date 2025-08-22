@@ -4,7 +4,24 @@ import pathlib
 import pytest
 
 types_mod = sys.modules['pyspark.sql.types']
-types_mod.StructType = type('StructType', (), {})
+for name in [
+    'StructType', 'StructField', 'StringType', 'LongType',
+    'TimestampType', 'ArrayType', 'MapType'
+]:
+    setattr(types_mod, name, type(name, (), {}))
+types_mod.__getattr__ = lambda name: type(name, (), {})
+
+func_mod = sys.modules['pyspark.sql.functions']
+for name in [
+    'col', 'rand', 'pmod', 'hash', 'row_number',
+    'concat', 'regexp_extract', 'date_format', 'current_timestamp', 'when'
+]:
+    setattr(func_mod, name, lambda *a, **k: None)
+func_mod.__getattr__ = lambda name: (lambda *a, **k: None)
+
+window_mod = types.ModuleType('pyspark.sql.window')
+setattr(window_mod, 'Window', type('Window', (), {}))
+sys.modules['pyspark.sql.window'] = window_mod
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
@@ -310,6 +327,72 @@ def test_validate_settings_conflicting_sample_keys(monkeypatch):
     with pytest.raises(RuntimeError) as exc:
         sanity.validate_settings(dbutils)
     assert 'sample_fraction or sample_size' in str(exc.value)
+
+
+def test_validate_settings_simple_requires_sampling(monkeypatch):
+    path = 'sample.json'
+    monkeypatch.setattr(
+        sanity, '_discover_settings_files', lambda: ({}, {'tbl': path}, {}, {})
+    )
+
+    import builtins, io, json
+
+    def fake_open(p, *a, **k):
+        if p == path:
+            return io.StringIO(
+                json.dumps(
+                    {
+                        'read_function': 'r',
+                        'transform_function': 't',
+                        'write_function': 'w',
+                        'src_table_name': 's',
+                        'dst_table_name': 'd',
+                        'sample_type': 'simple',
+                        'sample_id_col': 'id',
+                    }
+                )
+            )
+        return builtins.open(p, *a, **k)
+
+    monkeypatch.setattr(builtins, 'open', fake_open)
+    dbutils = DummyDbutils({'silver_parallel': [], 'silver_sequential': []})
+    with pytest.raises(RuntimeError) as exc:
+        sanity.validate_settings(dbutils)
+    assert "sample_type 'simple' requires" in str(exc.value)
+
+
+def test_validate_settings_simple_exactly_one(monkeypatch, capsys):
+    path = 'sample.json'
+    monkeypatch.setattr(
+        sanity, '_discover_settings_files', lambda: ({}, {'tbl': path}, {}, {})
+    )
+
+    import builtins, io, json
+
+    def fake_open(p, *a, **k):
+        if p == path:
+            return io.StringIO(
+                json.dumps(
+                    {
+                        'read_function': 'r',
+                        'transform_function': 't',
+                        'write_function': 'w',
+                        'src_table_name': 's',
+                        'dst_table_name': 'd',
+                        'sample_type': 'simple',
+                        'sample_id_col': 'id',
+                        'sample_fraction': 0.1,
+                    }
+                )
+            )
+        return builtins.open(p, *a, **k)
+
+    monkeypatch.setattr(builtins, 'open', fake_open)
+    monkeypatch.setattr(config, 'S3_ROOT_LANDING', 's3://landing/')
+    monkeypatch.setattr(config, 'S3_ROOT_UTILITY', 's3://utility/')
+    sanity.validate_settings(DummyDbutils({'silver_parallel': [], 'silver_sequential': []}))
+    out = capsys.readouterr().out
+    assert 'Sanity check: Validate settings check passed.' in out
 
 
 def test_validate_settings_deterministic_requires_sampling(monkeypatch):

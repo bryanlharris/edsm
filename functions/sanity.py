@@ -133,16 +133,17 @@ def validate_settings(dbutils):
                 continue
             fraction_present = "sample_fraction" in settings
             size_present = "sample_size" in settings
+            sample_type = str(settings.get("sample_type", "")).lower()
             if fraction_present and size_present:
                 errs.append(
                     f"{path} specify either sample_fraction or sample_size, not both"
                 )
             elif (
-                str(settings.get("sample_type", "")).lower() == "deterministic"
+                sample_type in {"deterministic", "simple"}
                 and not (fraction_present or size_present)
             ):
                 errs.append(
-                    f"{path} sample_type 'deterministic' requires sample_fraction or sample_size"
+                    f"{path} sample_type '{sample_type}' requires sample_fraction or sample_size"
                 )
             for k in required_keys[layer]:
                 if k not in settings:
