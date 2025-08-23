@@ -106,6 +106,20 @@ class SimpleSampleTests(unittest.TestCase):
             'SELECT count(*) AS total FROM tbl'
         )
 
+    def test_simple_sampling_fraction_skips_source_count(self):
+        spark = DummySpark(count=20)
+        settings = {
+            'sample_type': 'simple',
+            'sample_id_col': 'id',
+            'sample_fraction': 0.2,
+        }
+        df = DummyDF()
+        result = transform.sample_table(df, settings, spark=spark)
+        self.assertIs(result, df)
+        self.assertEqual(result.wheres, 2)
+        self.assertEqual(captured.get('modulus'), 5)
+        self.assertIsNone(spark.query)
+
     def test_returns_input_when_table_missing(self):
         captured.clear()
         spark = DummySpark(exists=False)
@@ -134,6 +148,28 @@ class SimpleSampleTests(unittest.TestCase):
         result = transform.sample_table(df, settings, spark=spark)
         self.assertIs(result, df)
         self.assertIn('_rescued_data', df.dropped)
+
+    def test_simple_sampling_requires_parameter(self):
+        spark = DummySpark()
+        settings = {
+            'sample_type': 'simple',
+            'sample_id_col': 'id',
+        }
+        df = DummyDF()
+        with self.assertRaises(ValueError):
+            transform.sample_table(df, settings, spark=spark)
+
+    def test_simple_sampling_parameters_mutually_exclusive(self):
+        spark = DummySpark()
+        settings = {
+            'sample_type': 'simple',
+            'sample_id_col': 'id',
+            'sample_fraction': 0.1,
+            'sample_size': '10',
+        }
+        df = DummyDF()
+        with self.assertRaises(ValueError):
+            transform.sample_table(df, settings, spark=spark)
 
 
 class DeterministicSampleTests(unittest.TestCase):
